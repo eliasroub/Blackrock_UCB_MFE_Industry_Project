@@ -41,10 +41,18 @@ from src.layered.evaluation.trade_pnl import (forward_yield_change, load_trades,
 # ``pm_bench``'s clock rebuild, so it stays import-by-path only.)
 from src.layered.evaluation.perturbation_bench import (direction_response, ic_dispersion,
                                                        ic_stability, scramble_response)
+# PM-free as well: reads boards through ``runs`` and correlates with pandas, never
+# touching ``layered.pm``. Measures how independent the panel actually is (the
+# input-isolation claim), the quantity the cue/whole/none arm turns on.
+from src.layered.evaluation.cross_correlation import (CrossCorrelation, board_matrix,
+                                                      compare_arms, cross_correlation,
+                                                      discover_arm, score_board)
 
 __all__ = ["ICEvaluator", "ICResult", "FeaturePanel", "release_dates", "required_ic",
            "Run", "load_run", "discover_runs", "view_from",
            "PMRun", "load_pm_run", "discover_pm_runs",
            "load_trades", "yield_pnl", "forward_yield_change", "score_trades",
            "trade_validity",
-           "direction_response", "ic_stability", "ic_dispersion", "scramble_response"]
+           "direction_response", "ic_stability", "ic_dispersion", "scramble_response",
+           "CrossCorrelation", "board_matrix", "cross_correlation", "score_board",
+           "discover_arm", "compare_arms"]
