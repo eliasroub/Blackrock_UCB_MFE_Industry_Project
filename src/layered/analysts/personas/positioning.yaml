@@ -13,9 +13,9 @@ display_name: "S&P 500 futures positioning and investor crowding"
 horizon:
   kind: fixed
   clock: EQ_AMGR_Z
-  clock_freq: null
-  label: "one week ahead (the next weekly close)"
-  approx_days: 7
+  clock_freq: ME
+  label: "month end, roughly one month ahead"
+  approx_days: 31
 
 mandate:
   - "Judge whether asset-manager net positioning is building or unwinding over the coming week, and how strongly."

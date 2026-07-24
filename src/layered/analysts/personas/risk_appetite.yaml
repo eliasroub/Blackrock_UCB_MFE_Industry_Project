@@ -13,9 +13,9 @@ display_name: "cross-asset risk appetite (metals, rates, and currencies)"
 horizon:
   kind: fixed
   clock: EQ_SLOPE_BP
-  clock_freq: null
-  label: "one week ahead (the next weekly close)"
-  approx_days: 7
+  clock_freq: ME
+  label: "month end, roughly one month ahead"
+  approx_days: 31
 
 mandate:
   - "Judge whether cross-asset risk appetite is improving or deteriorating over the coming week, and how strongly."

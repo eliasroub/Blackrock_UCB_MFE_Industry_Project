@@ -10,9 +10,9 @@ display_name: "US equity sector rotation and market breadth"
 horizon:
   kind: fixed
   clock: EQ_BREADTH_PCT
-  clock_freq: null
-  label: "one week ahead (the next weekly close)"
-  approx_days: 7
+  clock_freq: ME
+  label: "month end, roughly one month ahead"
+  approx_days: 31
 
 mandate:
   - "Judge whether market breadth is broadening or narrowing over the coming week, and how strongly."

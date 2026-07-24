@@ -57,10 +57,10 @@ def main():
                          "(re-asks an identical prompt; only useful to measure that churn)")
     ap.add_argument("--news", action="store_true",
                     help="add the shared market-nowcast channel: the target week plus "
-                         "the two weeks before it (data/news/nowcast_2024_2025.json), "
+                         "the two weeks before it (data/news/nowcast_2023_2025.json), "
                          "identical for every analyst. Off by default.")
     ap.add_argument("--news-path", default=None,
-                    help="override the nowcast file (default: data/news/nowcast_2024_2025.json)")
+                    help="override the nowcast file (default: data/news/nowcast_2023_2025.json)")
     ap.add_argument("--out", default=None, help="write views as JSONL")
     args = ap.parse_args()
 

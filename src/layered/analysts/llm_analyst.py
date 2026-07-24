@@ -26,7 +26,7 @@ from pathlib import Path
 
 import yaml
 
-from src.layered.contracts import DriverView, FeatureSet, MissingInput
+from src.layered.contracts import DriverView, FeatureSet, InputWeight, MissingInput
 from src.layered.features import FeatureEngine, from_persona
 from src.layered.text import TextContext, TextSelector
 from src.layered.text.selector import scrub_dates
@@ -52,7 +52,13 @@ _CALIBRATION = """Use the full conviction range — most readings are not extrem
 _OUTPUT_CONTRACT = """Submit your view with the submit_view tool. Fill "report"
 first — the analysis in prose — then let "direction" and "conviction" follow from
 it, so the call is a conclusion of the reasoning rather than a label you defend
-after the fact. Cite measurements in "key_evidence" by the exact names given to you."""
+after the fact. Cite measurements in "key_evidence" by the exact names given to you.
+
+Then rank EVERY measurement you were handed in "input_ranking" — including the ones
+that did not move you, at weight 0. "key_evidence" says what you leaned on; this says
+what you did with all of it, which is what makes the view explainable rather than
+merely stated. "pull" is the direction the input pushed YOUR VIEW, not the direction
+the input itself moved."""
 
 # Where a request for outside evidence belongs. Without this the model writes "I would
 # want a read on wages" into the prose, which the cross-driver drift check reads as
@@ -114,11 +120,31 @@ SUBMIT_VIEW_TOOL = {
                     "required": ["driver", "why"],
                 },
             },
+            "input_ranking": {
+                "type": "array",
+                "description": ("EVERY measurement you were handed, ranked most to least "
+                                "influential on this view. Include the ones you ignored, "
+                                "with weight 0 — an input missing from this list is "
+                                "indistinguishable from one you never read."),
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "input": {"type": "string",
+                                  "description": "The measurement name, exactly as given to you."},
+                        "pull": {"type": "string", "enum": ["up", "down", "neutral"],
+                                 "description": ("Which way this input pushed YOUR VIEW — not "
+                                                 "which way the input itself moved.")},
+                        "weight": {"type": "number", "minimum": 0.0, "maximum": 1.0,
+                                   "description": "0 = ignored, 1 = decisive on its own."},
+                    },
+                    "required": ["input", "pull", "weight"],
+                },
+            },
             "direction": {"type": "string", "enum": ["up", "down", "flat"]},
             "conviction": {"type": "number", "minimum": 0.0, "maximum": 1.0},
         },
         "required": ["report", "key_evidence", "falsifier", "missing_inputs",
-                     "direction", "conviction"],
+                     "input_ranking", "direction", "conviction"],
     },
 }
 
@@ -416,6 +442,29 @@ class LLMAnalyst:
             if named in known and named != self.driver:
                 gaps.append(MissingInput(driver=named, why=str(m.get("why", "")).strip()))
 
+        # The complete attribution. Grounded exactly like key_evidence — an entry naming
+        # something we never handed over is dropped rather than failing the view — and
+        # de-duplicated keeping the highest weight, because a model that lists an input
+        # twice would otherwise double-count it in any theme aggregation downstream.
+        ranked: dict[str, InputWeight] = {}
+        for r in parsed.get("input_ranking") or []:
+            if not isinstance(r, dict):
+                continue
+            name = str(r.get("input", "")).strip()
+            if name not in features.names:
+                continue
+            try:
+                w = min(1.0, max(0.0, float(r.get("weight", 0.0))))
+            except (TypeError, ValueError):
+                continue
+            pull = str(r.get("pull", "neutral")).strip().lower()
+            if pull not in ("up", "down", "neutral"):
+                pull = "neutral"
+            prev = ranked.get(name)
+            if prev is None or w > prev.weight:
+                ranked[name] = InputWeight(input=name, pull=pull, weight=w)
+        ranking = sorted(ranked.values(), key=lambda x: (-x.weight, x.input))
+
         view = DriverView(
             driver=self.driver,
             asof=features.asof,
@@ -428,6 +477,7 @@ class LLMAnalyst:
             key_evidence=valid,
             falsifier=str(parsed.get("falsifier", "")).strip(),
             missing_inputs=gaps,
+            input_ranking=ranking,
             source=f"llm:{self.driver}",
         )
         # Only a successfully formed view becomes the memory — every degraded path

@@ -15,9 +15,9 @@ horizon:
   # one-step horizon, so no clock_freq resample is needed (unlike a daily series).
   kind: fixed
   clock: EQ_VIX
-  clock_freq: null
-  label: "one week ahead (the next weekly close)"
-  approx_days: 7
+  clock_freq: ME
+  label: "month end, roughly one month ahead"
+  approx_days: 31
 
 mandate:
   - "Judge whether the equity volatility regime is rising or easing over the coming week, and how strongly."

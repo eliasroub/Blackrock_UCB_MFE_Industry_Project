@@ -8,12 +8,16 @@
 display_name: "euro-area rates (German Bund yields, the euro-area benchmark curve)"
 
 horizon:
-  # Weekly-native series: one Friday to the next is already non-overlapping.
+  # Month-end, not weekly. Every central bank publishes ~8 statements a year, so a
+  # weekly clock sees the SAME document ~6.5 times running and adds no text at all
+  # (measured: 548 weekly observations see the same 78-87 distinct statements as 126
+  # monthly ones). It also mismatched the seam — every pod is month-end, so three of
+  # every four weekly views were produced and then never read by any PM.
   kind: fixed
   clock: INTL_DE10Y
-  clock_freq: null
-  label: "one week ahead (the next weekly close)"
-  approx_days: 7
+  clock_freq: ME
+  label: "month end, roughly one month ahead"
+  approx_days: 31
 
 mandate:
   - "Judge whether euro-area long-term yields are rising or falling over the coming week, and how strongly."
