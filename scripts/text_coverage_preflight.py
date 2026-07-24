@@ -8,7 +8,11 @@ from __future__ import annotations
 import sys, warnings
 warnings.filterwarnings("ignore")
 import pandas as pd
+from src.data.equity_local import load_any_bundle as load_bundle
 from src.layered.analysts.build import build_analyst
+from src.layered.evaluation import release_dates
+
+WINDOW = ("2016-01-01", "2026-06-30")
 
 DRIVERS = ["inflation", "inflation_expectations", "labor_tightness", "term_premium",
            "financial_conditions", "balance_sheet", "curve_slope",
@@ -18,14 +22,17 @@ DATES = pd.date_range("2016-06-30", "2026-06-30", freq="QE")
 
 print(f"{'analyst':24s} {'obs':>5s} {'mode':6s} {'non-empty':>10s} {'mean chars':>11s}")
 print("-" * 64)
+TOTAL = [0]
 for d in DRIVERS:
+    # How many calls this analyst would actually make over the window — the same
+    # release clock `run_analyst_ic` uses, so this doubles as the run's price tag.
     nobs = "?"
     try:
         _a = build_analyst(d, None, verbose=False)
-        nobs = len(_a.clock(pd.Timestamp("2016-01-01"), pd.Timestamp("2026-06-30"))) \
-               if callable(getattr(_a, "clock", None)) else "?"
-    except Exception:
-        pass
+        nobs = len(release_dates(load_bundle(_a.inputs), _a.clock, *WINDOW,
+                                 freq=_a.horizon_freq))
+    except Exception as e:
+        nobs = f"ERR:{type(e).__name__}"
     for mode in ("cue", "whole"):
         try:
             a = build_analyst(d, None, text_mode=mode, verbose=False)
@@ -47,3 +54,9 @@ for d in DRIVERS:
         flag = "   <-- ALWAYS EMPTY" if n == 0 else ("   <-- sparse" if pct < 50 else "")
         if n == 0 and errs: flag += f"  [{errs[0][:50]}]"
         print(f"{d:24s} {str(nobs):>5s} {mode:6s} {n:4d}/{len(DATES):<3d} {pct:3.0f}% {mc:9d}{flag}")
+        if mode == "whole":
+            TOTAL[0] += nobs if isinstance(nobs, int) else 0
+
+print("-" * 64)
+print(f"{'TOTAL':24s} {TOTAL[0]:>5d} observations across {len(DRIVERS)} analysts"
+      f"  ->  x3 text arms = {TOTAL[0]*3} calls")
