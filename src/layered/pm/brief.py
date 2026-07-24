@@ -13,7 +13,10 @@ holds there:
     demonstrably contains bare years. A date is the single token that most helps a
     model recall the period instead of reading the evidence, so the whole rendered
     brief goes through ``scrub_dates``. Ages are rendered relative ("formed 15 days
-    ago"), exactly as ``LLMAnalyst._render_memory`` does.
+    ago"), exactly as ``LLMAnalyst._render_memory`` does. The one sanctioned
+    exception is ``disclose_date``, the evaluation-only arm that measures what this
+    invariant is worth by breaking it deliberately; it is off on the shipped path
+    and it re-adds only the meeting's own date, after the scrub has run.
   * **Absence is visible.** A driver with no current view still gets a block saying
     so. Silently omitting it would let the PM believe it had heard from everyone.
   * **Staleness is visible.** A three-week-old view is labelled as one. Without it a
@@ -30,6 +33,7 @@ import re
 from pathlib import Path
 from typing import Optional
 
+import pandas as pd
 import yaml
 
 from src.layered.pm.board import BoardEntry, Meeting
@@ -83,6 +87,42 @@ def scrub_report_dates(text: str) -> str:
     out = _BARE_MONTH.sub("[date]", out)
     out = _BARE_YEAR.sub("[date]", out)
     return re.sub(r"(\[date\][\s,]*)+", "[date] ", out).strip()
+
+
+# ── the date-disclosure arms (evaluation only) ──────────────────────────────
+# `fomc-recall-probe` measured the analyst text channel: the model names the exact
+# meeting month for 75.1% of date-scrubbed FOMC statements. This is the PM-layer
+# counterpart. The defence up here is structural rather than textual — ages are
+# rendered relative (`board.BoardEntry.age_label`) and the brief is scrubbed — so the
+# only way to price it is to hand the PM the date and measure what changes.
+#
+# This is a diagnostic, never a production prompt. `None` is the shipped path.
+DISCLOSURE_ARMS = ("date", "date_warned", "placebo")
+
+# LOCKED before the run. The placebo is the true date minus five years: deterministic
+# (the perturb contract forbids RNG), same rendered shape, and — because the offset is
+# a whole number of years — the same month name and the same weekday-independent
+# month-end position. So `placebo` differs from `date` in WHICH period is named and in
+# nothing else, which is the contrast that separates "this date carries information"
+# from "a date-shaped sentence changed the answer".
+PLACEBO_YEARS = 5
+
+
+def placebo_date(asof) -> pd.Timestamp:
+    """The matched-null date for ``asof`` — same shape, wrong period."""
+    return pd.Timestamp(asof) - pd.DateOffset(years=PLACEBO_YEARS)
+
+
+def disclosure_line(asof) -> str:
+    """The one line the disclosure arms add.
+
+    Both a written and an ISO rendering, deliberately: the arm exists to *maximise*
+    the recall channel, and a weak or oddly-tokenised date would understate the effect
+    and manufacture a false null.
+    """
+    ts = pd.Timestamp(asof)
+    return (f"This meeting is dated {ts:%d %B %Y} ({ts:%Y-%m-%d}). "
+            f"The reports below are the panel as it stood on that date.")
 
 
 def horizon_labels(drivers: list[str], persona_dir: Optional[Path] = None) -> dict[str, str]:
@@ -166,13 +206,19 @@ def _gaps_block(meeting: Meeting, drivers: list[str]) -> str:
 def render_brief(meeting: Meeting, *, drivers: Optional[list[str]] = None,
                  include_reports: bool = True, max_report_words: Optional[int] = None,
                  scrub: bool = True, blind: Optional[str] = None,
-                 persona_dir: Optional[Path] = None) -> str:
+                 persona_dir: Optional[Path] = None,
+                 disclose_date: Optional[pd.Timestamp] = None) -> str:
     """The panel as the PM sees it.
 
     ``blind`` renders exactly one driver's block and drops the gaps section — the
     control arm. It shares this renderer rather than having its own so the two arms
     differ in *what the PM is shown* and in nothing else; a separate code path would
     make any measured difference partly an artifact of the formatting.
+
+    ``disclose_date`` is a *date*, not a flag, for the same reason: the treatment arm
+    passes ``meeting.asof`` and the matched null passes ``placebo_date(meeting.asof)``,
+    so the two run down one code path and are byte-matched by construction rather than
+    by discipline. ``None`` is the shipped, date-blind path.
     """
     order = drivers if drivers is not None else meeting.drivers
     if blind is not None:
@@ -194,4 +240,13 @@ def render_brief(meeting: Meeting, *, drivers: Optional[list[str]] = None,
             blocks.append(gaps)
 
     out = "\n\n".join(blocks)
-    return scrub_report_dates(out) if scrub else out
+    out = scrub_report_dates(out) if scrub else out
+    # AFTER the scrub, and load-bearingly so: `scrub_report_dates` rewrites
+    # "30 June 2023" to "[date]", so the same injection one line earlier would leave
+    # this arm byte-identical to the baseline — an experiment that silently measures
+    # nothing and reports a clean null. `test_a_disclosed_date_survives_the_scrub`
+    # exists to catch exactly that. Prepended rather than appended because it frames
+    # what follows; at the end it would read as a footnote under the gaps block.
+    if disclose_date is not None:
+        out = f"{disclosure_line(disclose_date)}\n\n{out}"
+    return out

@@ -15,7 +15,10 @@ import pytest
 
 from src.layered.contracts import DriverView
 from src.layered.pm.board import ViewBoard
-from src.layered.pm.brief import render_brief, scrub_report_dates
+from src.layered.perturb.brief import PM_NAMES, pm_perturbation
+from src.layered.pm.brief import (
+    PLACEBO_YEARS, disclosure_line, placebo_date, render_brief, scrub_report_dates,
+)
 from src.layered.pm.build import build_pm
 from src.layered.pm.disagreement import panel_disagreement
 from src.layered.pm.llm_pm import POD_DIR, LLMPM, submit_arbitration_tool
@@ -252,7 +255,12 @@ def real_board():
 
 
 def test_no_brief_in_the_corpus_carries_a_date(real_board):
-    """The invariant that matters most, over every meeting the PM will ever see."""
+    """The invariant that matters most, over every meeting the PM will ever see.
+
+    Pins the DEFAULT path specifically: `render_brief` is called with no arguments, so
+    the one sanctioned exception — the `disclose_date` leak arm — cannot make this pass
+    vacuously. That arm has its own tests below, which assert the opposite.
+    """
     for ts in pd.date_range("2016-01-31", "2025-12-31", freq="ME"):
         brief = render_brief(real_board.at(ts))
         assert not _DATE.search(brief), f"{ts.date()}: year token"
@@ -465,3 +473,142 @@ def test_display_name_cannot_suppress_the_system_fallback():
     lose its `system:` text."""
     out = render_mandate({"display_name": "macro rates PM", "system": "legacy text"})
     assert "legacy text" in out and out.startswith("You are the macro rates PM.")
+
+
+# ── the date-disclosure leak arm ────────────────────────────────────────────
+# The shipped brief withholds the date on purpose. This arm hands it over so the
+# withholding can be priced instead of assumed, and these tests exist because the
+# experiment has one silent failure mode: injected a line earlier in `render_brief`
+# and the scrubber eats it, leaving an arm that is byte-identical to its own control
+# and a null result that looks clean. Every assertion below is aimed at that.
+def _dated_board():
+    """A panel whose prose names a date the scrubber must still remove."""
+    return ViewBoard({d: [view(d, "2023-06-30",
+                              report=f"{d} report. In March 2020 the Committee acted.")]
+                      for d in ("inflation", "curve_slope", "term_premium")})
+
+
+def test_disclose_date_is_off_by_default():
+    """The shipped path cannot drift: no argument and an explicit None are one path."""
+    m = _three_driver_board().at("2023-06-30")
+    assert render_brief(m) == render_brief(m, disclose_date=None)
+
+
+def test_a_disclosed_date_survives_the_scrub():
+    """The single most load-bearing test here.
+
+    `scrub_report_dates` rewrites "30 June 2023" to "[date]". If the injection is ever
+    moved above the scrub, the disclosure arm renders byte-identical to its control and
+    the whole experiment reports a confident NO-EFFECT while measuring nothing.
+    """
+    m = _three_driver_board().at("2023-06-30")
+    out = render_brief(m, disclose_date=m.asof)
+    assert _DATE.search(out), "the disclosed year did not survive the scrub"
+    assert "June" in out, "the disclosed month did not survive the scrub"
+    assert "2023-06-30" in out
+
+
+def test_disclosure_changes_the_brief_and_nothing_else():
+    """One variable. Strip the injected first block and the baseline must come back."""
+    m = _three_driver_board().at("2023-06-30")
+    out = render_brief(m, disclose_date=m.asof)
+    assert out.split("\n\n", 1)[1] == render_brief(m)
+
+
+def test_report_prose_is_still_scrubbed_under_disclosure():
+    """The arm adds the meeting's own date. It does not stop scrubbing everything else.
+
+    Otherwise the arm changes two things at once — one known date and an unknown number
+    of dates recalled from analyst prose — and no verdict from it would be readable.
+    """
+    m = _dated_board().at("2023-06-30")
+    out = render_brief(m, disclose_date=m.asof)
+    body = out.split("\n\n", 1)[1]
+    assert "March 2020" not in out
+    assert not _DATE.search(body), "a date survived in the panel body"
+    assert not _MONTH.search(body), "a month name survived in the panel body"
+
+
+def test_placebo_is_a_matched_null_at_every_meeting():
+    """The placebo must differ from the true date in WHICH period it names and in
+    nothing else — same month, same rendered length, never the real date."""
+    for ts in pd.date_range("2016-01-31", "2025-12-31", freq="ME"):
+        p = placebo_date(ts)
+        assert p != ts
+        assert p.year == ts.year - PLACEBO_YEARS
+        assert p.strftime("%B") == ts.strftime("%B"), f"{ts.date()}: month moved"
+        assert len(disclosure_line(p)) == len(disclosure_line(ts)), f"{ts.date()}: length"
+
+
+def test_placebo_and_date_arms_share_a_system_prompt():
+    """The matched null differs from the treatment in the brief only."""
+    a = LLMPM(pod="t", config=_pod(), disclose="date")._system_prompt()
+    b = LLMPM(pod="t", config=_pod(), disclose="placebo")._system_prompt()
+    assert a == b
+
+
+def test_the_warning_arm_is_the_only_one_that_changes_the_system_prompt():
+    base = LLMPM(pod="t", config=_pod())._system_prompt()
+    assert LLMPM(pod="t", config=_pod(), disclose="date")._system_prompt() == base
+    warned = LLMPM(pod="t", config=_pod(), disclose="date_warned")._system_prompt()
+    assert warned != base
+    assert "on or before that date" in warned
+
+
+def test_the_date_warning_names_no_date():
+    """`_system_prompt()` takes no meeting and the runner records ONE system prompt for
+    the whole run, so the warning has to point at the date in the brief rather than
+    restate it. A dated warning would make that sidecar record false for 119 of 120
+    meetings."""
+    warned = LLMPM(pod="t", config=_pod(), disclose="date_warned")._system_prompt()
+    assert not _DATE.search(warned)
+    assert not _MONTH.search(warned)
+
+
+def test_an_unknown_disclosure_arm_is_refused():
+    """A typo must not quietly run the shipped path and then be scored as a treatment."""
+    with pytest.raises(ValueError):
+        LLMPM(pod="t", config=_pod(), disclose="dates")
+
+
+def test_the_disclosed_arm_reaches_the_assembled_user_prompt():
+    """Guards the wiring, not just the renderer: `_disclosed_date` must actually be
+    threaded into `_user_prompt`, which is what the runner hashes and records."""
+    m = _three_driver_board().at("2023-06-30")
+    off = LLMPM(pod="t", config=_pod(reads="all"))._user_prompt(m)
+    on = LLMPM(pod="t", config=_pod(reads="all"), disclose="date")._user_prompt(m)
+    plc = LLMPM(pod="t", config=_pod(reads="all"), disclose="placebo")._user_prompt(m)
+    assert not _DATE.search(off)
+    assert "2023-06-30" in on
+    assert "2018-06-30" in plc and "2023-06-30" not in plc
+
+
+# ── coverage holes this arm's existence made visible ────────────────────────
+def test_no_pm_perturbation_leaks_a_date():
+    """Every registered PM perturbation keeps the prompt date-free.
+
+    Nothing iterated `PM_NAMES` before. This is the test the flag-vs-registry decision
+    buys: `--disclose-date` is deliberately NOT in the registry, so the registry can be
+    asserted uniformly date-free and the next perturbation added cannot smuggle a date
+    in unnoticed.
+    """
+    m = _dated_board().at("2023-06-30")
+    for name in PM_NAMES:
+        pm = LLMPM(pod="t", config=_pod(reads="all"),
+                   perturbation=pm_perturbation(name))
+        prompt = pm._user_prompt(pm.build_inputs(_dated_board(), "2023-06-30"))
+        assert not _DATE.search(prompt), f"{name}: year token"
+        assert not _MONTH.search(prompt), f"{name}: month name"
+    assert m is not None
+
+
+def test_every_shipped_pods_system_prompt_is_date_free():
+    """A pod YAML mandate naming a year would leak into every meeting of every arm and
+    never be caught — nothing asserted this before."""
+    pods = sorted(p.stem for p in POD_DIR.glob("*.yaml") if not p.stem.startswith("_"))
+    assert pods, "no pod specs found"
+    for pod in pods:
+        for kw in ({}, {"use_memory": True}, {"blind": "inflation"}):
+            sp = build_pm(pod, **kw)._system_prompt()
+            assert not _DATE.search(sp), f"{pod} {kw}: year token"
+            assert not _MONTH.search(sp), f"{pod} {kw}: month name"

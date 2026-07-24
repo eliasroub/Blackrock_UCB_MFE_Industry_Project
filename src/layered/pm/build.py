@@ -18,16 +18,20 @@ from src.layered.pm.llm_pm import LLMPM
 def build_pm(pod: str, llm=None, *, pod_dir: Optional[Path] = None,
              max_report_words: Optional[int] = None,
              blind: Optional[str] = None, use_memory: bool = False,
-             perturbation=None) -> LLMPM:
+             perturbation=None, disclose: Optional[str] = None) -> LLMPM:
     """An ``LLMPM`` wired from its pod spec.
 
     ``perturbation`` is an evaluation-only arm (the scramble in
     ``src.layered.perturb.brief``, or a shared string perturbation); ``None`` is the
     shipped path. The run script resolves the ``--perturb`` name and passes it here.
+
+    ``disclose`` is the date-disclosure leak arm (``src.layered.pm.brief``'s
+    ``DISCLOSURE_ARMS``); ``None`` is likewise the shipped, date-blind path.
     """
     return LLMPM.from_pod(pod, llm=llm, pod_dir=pod_dir,
                           max_report_words=max_report_words, blind=blind,
-                          use_memory=use_memory, perturbation=perturbation)
+                          use_memory=use_memory, perturbation=perturbation,
+                          disclose=disclose)
 
 
 def build_board(pm: LLMPM, directory: str = "reports/ab", suffix: str = "_on",

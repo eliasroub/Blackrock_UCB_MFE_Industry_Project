@@ -31,6 +31,7 @@ from src.layered.evaluation.trade_pnl import (load_trades, score_trades, trade_v
                                               yield_pnl)
 from src.layered.evaluation.trade_pnl import summarize as summarize_trades
 from src.layered.perturb.brief import PM_NAMES, pm_perturbation
+from src.layered.pm.brief import DISCLOSURE_ARMS
 from src.layered.pm.build import build_board, build_pm, preflight_llm, print_run_audit
 from src.layered.pm.disagreement import override, panel_disagreement
 
@@ -57,6 +58,13 @@ def main():
                     help="show the PM its previous arbitration and the position it is "
                          "already carrying (off by default, so the memory-less arm "
                          "reproduces byte-for-byte)")
+    ap.add_argument("--disclose-date", default=None, choices=DISCLOSURE_ARMS,
+                    help="leak probe: name the meeting date in the brief, which the "
+                         "shipped path deliberately withholds. 'date' = the true date; "
+                         "'date_warned' = the true date plus a system-prompt "
+                         "instruction not to use post-date information; 'placebo' = a "
+                         "false date (true minus 5y) in the same position — the matched "
+                         "null for 'date'. Off = the shipped, date-blind path.")
     ap.add_argument("--no-identity-check", action="store_true",
                     help="allow a board whose legs were run under different configs")
     ap.add_argument("--perturb", default=None, choices=PM_NAMES,
@@ -70,10 +78,19 @@ def main():
     ap.add_argument("--out", default="reports/pm/pm_run.jsonl")
     args = ap.parse_args()
 
+    # The memory block is prepended ABOVE the brief, so with memory on the disclosure
+    # line stops being the first thing the PM reads and its salience becomes one more
+    # uncontrolled variable. The memory block is also a second scrubbed prose surface.
+    # Refused rather than silently allowed: the preregistration locks memory off.
+    if args.disclose_date and args.memory:
+        ap.error("--disclose-date cannot be combined with --memory: the memory block "
+                 "would precede the disclosure line and change its salience")
+
     llm = None if args.dry_run else preflight_llm(args.model, max_tokens=args.max_tokens)
     pm = build_pm(args.pod, llm, max_report_words=args.max_report_words,
                   blind=args.blind, use_memory=args.memory,
-                  perturbation=pm_perturbation(args.perturb))
+                  perturbation=pm_perturbation(args.perturb),
+                  disclose=args.disclose_date)
     board = build_board(pm, args.board, args.board_suffix,
                         check_identity=not args.no_identity_check)
 
@@ -81,7 +98,8 @@ def main():
     if args.limit:
         dates = dates[: args.limit]
     print(f"[info] pod={args.pod} drivers={pm.listens_to} meetings={len(dates)} "
-          f"clock={pm.clock_freq} blind={args.blind}", file=sys.stderr)
+          f"clock={pm.clock_freq} blind={args.blind} "
+          f"disclose={args.disclose_date}", file=sys.stderr)
 
     if args.dry_run:
         m = pm.build_inputs(board, dates[0])

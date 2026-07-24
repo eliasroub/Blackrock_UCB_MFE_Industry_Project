@@ -13,6 +13,120 @@ measured).
 
 ## Preregistered (pending)
 
+### pm-date-disclosure — preregistered 2026-07-24 at 83c069c (code landed, unrun)
+
+**Question.** The PM brief is date-blind by construction: the whole rendered brief goes
+through `scrub_report_dates`, and view ages are rendered relative ("formed 22 days ago")
+with an explicit comment that an absolute date would undo the scrub. That defence has
+never been priced. `fomc-recall-probe` showed the model names the exact meeting month
+for 74% of date-scrubbed FOMC statements at the *analyst text* layer; this asks the
+same question one layer up, where the defence is structural rather than textual:
+**hand the PM the meeting date and does its arbitration get better?**
+
+**Relation to Rejected Ideas.** Does not retry "light preprocessing as recall defense"
+(killed 2026-07-22). That entry killed *scrubbing as a fix*. This measures what the
+scrub currently *buys*, on a different surface, and produces a diagnostic — never a
+production prompt.
+
+**Arms.** Pod `duration`, board `reports/ab` `_on`, model pinned exactly, `--memory`
+OFF (refused in argparse for this arm: the memory block renders above the brief and
+would change the disclosure line's salience), `--blind` OFF, window 2016-01-31 to
+2025-12-31 on the monthly clock.
+
+| arm | invocation | role |
+|---|---|---|
+| `off` | (no flags) | baseline — **re-run, not reused** |
+| `resample` | (no flags, second run) | sampling floor |
+| `whitespace` | `--perturb whitespace` | surface-byte floor |
+| `placebo` | `--disclose-date placebo` | **matched null** — a date-shaped line naming the wrong period (true minus 5y) |
+| `date` | `--disclose-date date` | treatment |
+| `date_warned` | `--disclose-date date_warned` | mitigation — **gated**, see rule 5 |
+
+**Why three floors and not one.** The PM path is uncached and runs at the API-default
+temperature (`AnthropicClient` is constructed with neither `temperature` nor
+`cache_dir`), so **the baseline already disagrees with itself** and reruns are not $0 —
+the general house rule does not hold here. `resample` bounds that. `whitespace` adds
+surface sensitivity but changes far more bytes than a one-line insert while adding no
+proposition. `placebo` is the primary null because it adds *the same proposition about
+the wrong period*, which is the only contrast that separates "this date carries
+information" from "a date-shaped sentence moved the model".
+
+**Primary metric.** `Δhit` — the per-meeting fraction of the pod's drivers called in the
+right direction, differenced between arms and tested paired
+(`evaluation.perturbation_bench.paired_arm_test`). **The meeting is the unit of
+observation, not the (driver, meeting) cell**: drivers within a meeting share one brief
+and one call, so a cell-level t would be inflated by ~√5. Movement is
+`evaluation.perturbation_bench.pm_response`, which counts a strict sign reversal only —
+a move to flat is a withdrawn call and is reported separately.
+
+**Decision rules (LOCKED).**
+1. `floor = max(movement(off, resample), movement(off, whitespace), movement(off, placebo))`.
+2. **Gate 1 — behavioural.** `movement(off, date) > floor` at `t ≥ 2.0` on the paired
+   per-meeting differences. Fails → **DATE-INERT**; stop, do not test Gate 2. The
+   date-blind design is then confirmed rather than assumed.
+3. **Gate 2 — directional**, only if Gate 1 fires. `Δhit(date − off) ≥ +0.05` with
+   `t ≥ 2.0` **AND** `Δhit(date − placebo) ≥ +0.05` with `t ≥ 2.0` →
+   **LEAK-EXPLOITED**. Only this verdict permits the claim that the absolute date
+   carries memorised information into the PM layer.
+4. Gate 1 fires but Gate 2 does not → **DATE-SENSITIVE-NOT-LEAK**: the date moved the
+   answers without improving them.
+5. **Gated fifth cell.** Run `date_warned` only if Gate 1 fires. Then
+   **WARNING-EFFECTIVE** iff `Δhit(date_warned − off) < +0.05` and
+   `Δhit(date − date_warned) ≥ +0.05` at `t ≥ 2.0`; anything else is
+   **WARNING-UNRELIABLE**. A `date_warned` result may not be reported without also
+   stating that no warning-without-date cell was run, so "the instruction helped"
+   cannot be separated from "an extra instruction moved the model".
+6. **Kill criteria.**
+   - Gate 2 fires → date disclosure is a live leak channel at the PM layer. No PM arm
+     may run with a date in the brief outside a labelled leak probe, and every
+     published in-window PM IC must carry the measured `Δhit` as a stated upper bound
+     on how much of it could be recall.
+   - Rule 4 fires → the PM is prompt-sensitive at a scale that contaminates every
+     one-variable PM arm. `--blind`, `--memory`, `answer_space` and `--perturb`
+     contrasts already run at n≈120 become suspect below the measured floor and must
+     quote it. Goes to Rejected Ideas as "single-run one-variable PM arms without a
+     resample floor".
+
+**Robustness gates.** The branch that fires must be unchanged: (a) in each subperiod
+2016-2019 / 2020-2022 / 2023-2025; (b) under drop-one-driver; (c) dropping the meetings
+whose placebo date lands in 2020 (a regime loud enough to inflate the null); (d) under
+`mean_abs_change` instead of the strict-reversal rate; (e) without the common-sample
+restriction (degraded meetings are dropped per-arm by the loader, so the paired test is
+run on the intersection; this checks the intersection is not carrying the result).
+
+**Power, stated honestly.** n ≈ 119 usable meetings. Under a plausible ~25% cell-level
+disagreement between two runs of the same prompt, per-meeting SD ≈ 0.22, so SE ≈ 0.020
+and the minimum detectable `Δhit` at t=2.0 is **≈ 0.041** — which is why the threshold
+is locked at 0.05 rather than lower. **A leak smaller than a 5-percentage-point hit-rate
+improvement is invisible to this design, and a null must not be reported as ruling one
+out.** This is a one-sided instrument. The secondary per-driver IC contrast is weaker
+still (MDE(ΔIC) ≈ 0.12) and is descriptive only. The design requires n ≥ 80 meetings to
+be confirmatory; the realised SE is computed from the arms themselves and reported, and
+if it exceeds 0.025 the run is declared underpowered and no verdict is claimed.
+
+**Implementation locks.**
+- `--disclose-date` is a first-class flag, **not** a `--perturb` registry entry, so
+  `PM_NAMES` stays uniformly date-free and `test_no_pm_perturbation_leaks_a_date` — the
+  sweep that closes that coverage hole — remains writable without a carve-out.
+- The disclosure line is injected **after** `scrub_report_dates`, and
+  `test_a_disclosed_date_survives_the_scrub` asserts it. Injected one line earlier the
+  scrubber eats it, the arm renders byte-identical to its control, and the experiment
+  reports a confident NO-EFFECT while measuring nothing. This was verified by mutation:
+  moving the injection above the scrub fails that test.
+- `placebo_date` is locked at −5 years before the run: deterministic, same month name,
+  same rendered length (asserted at every meeting 2016-2025).
+- The `off` arm is re-run rather than reusing `reports/pm/duration_on.jsonl`, whose meta
+  predates the current config keys and whose model alias may have moved. Comparing a
+  stale baseline to a fresh treatment would confound the arm with a model snapshot.
+  Replaying the stored `brief_sha256` through current code is a free pre-check.
+- **Cost.** ≈$0.03/meeting on sonnet ⇒ ≈$3.5 per 120-meeting arm; five arms in round 1
+  ≈ **$17**, the gated cell a further ≈$3.5 (±25%). Uncached, so re-runs cost again.
+  Requires explicit spend approval before launch.
+
+**Peeking status.** Genuinely preregistered: no disclosed-date PM output exists. The
+code is landed and unit-tested against synthetic boards only; the numbers seen so far
+are prompt token counts, which are not outcomes.
+
 ### recall-stratified-ic — analysis plan preregistered 2026-07-22 (binds a future run)
 
 **Purpose.** The accepted position ("live with the look-ahead bias") gets one

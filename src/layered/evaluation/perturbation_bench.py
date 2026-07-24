@@ -122,3 +122,80 @@ def scramble_response(baseline_pm_path: str, scrambled_pm_path: str) -> dict:
         "flip_rate": (pooled_flips / pooled_n) if pooled_n else float("nan"),
         "per_driver": per_driver,
     }
+
+
+# ── any two PM arms ──────────────────────────────────────────────────────────────
+def pm_response(baseline_pm_path: str, other_pm_path: str) -> dict:
+    """How far a PM's calls moved between two arms, on the strict-reversal rule.
+
+    Generic on purpose — it inspects neither run's config — so it serves the scramble,
+    the date-disclosure leak probe, and any two PM runs sharing a meeting grid.
+
+    Two deliberate differences from ``scramble_response``, which is left alone because
+    its definition is already committed to a recorded verdict:
+
+      * **A move to exactly flat is a withdrawn call, not a reversal**, so it lands in
+        ``n_to_flat`` instead of inflating ``flip_rate`` — the rule
+        ``direction_response`` already uses. The two functions therefore do *not*
+        report interchangeable numbers, and a disclosure arm's most plausible response
+        (withdrawing or sharpening a call rather than reversing it) is exactly the case
+        where they diverge.
+      * **``per_meeting`` is returned**, because drivers within a meeting share one
+        brief, one panel and one call. The meeting is the unit of observation; a
+        t-statistic taken over cells would be inflated by roughly ``sqrt(k)`` for a
+        k-driver pod. Feed this series to ``paired_arm_test``, never the cells.
+    """
+    b, s = load_pm_run(baseline_pm_path), load_pm_run(other_pm_path)
+    drivers = [d for d in b.drivers if d in s.drivers]
+    per_driver, per_meeting = {}, {}
+    pooled_flips = pooled_flat = pooled_n = 0
+    deltas: list[pd.Series] = []
+    for d in drivers:
+        pair = pd.concat([b.frame[d].rename("base"), s.frame[d].rename("other")],
+                         axis=1).dropna()
+        if pair.empty:
+            continue
+        deltas.append((pair["other"] - pair["base"]).abs())
+        nz = pair[pair["base"] != 0]
+        if not len(nz):
+            continue
+        rev = np.sign(nz["other"]) == -np.sign(nz["base"])
+        per_driver[d] = {"n": int(len(nz)), "flip_rate": float(rev.mean())}
+        pooled_flips += int(rev.sum())
+        pooled_flat += int((nz["other"] == 0).sum())
+        pooled_n += len(nz)
+        for ts, flipped in rev.items():
+            hit, tot = per_meeting.get(ts, (0, 0))
+            per_meeting[ts] = (hit + int(flipped), tot + 1)
+
+    meetings = pd.Series({ts: h / t for ts, (h, t) in per_meeting.items()
+                          if t}).sort_index()
+    alld = pd.concat(deltas) if deltas else pd.Series(dtype=float)
+    return {
+        "n": pooled_n,
+        "n_meetings": int(len(meetings)),
+        "flip_rate": (pooled_flips / pooled_n) if pooled_n else float("nan"),
+        "n_to_flat": pooled_flat,
+        "mean_abs_change": float(alld.mean()) if len(alld) else float("nan"),
+        "per_driver": per_driver,
+        "per_meeting": meetings,
+    }
+
+
+def paired_arm_test(a: pd.Series, b: pd.Series) -> dict:
+    """Paired mean / se / t on two arms' per-meeting series, on their shared meetings.
+
+    The clustered test the decision rules are written against: one observation per
+    meeting, differenced within meeting so the panel's own month-to-month variation
+    cancels. ``n`` is meetings, and it is the ``n`` any t-statistic here must quote.
+    """
+    pair = pd.concat([a.rename("a"), b.rename("b")], axis=1).dropna()
+    d = pair["a"] - pair["b"]
+    n = int(len(d))
+    if n < 2:
+        return {"n": n, "mean": float("nan"), "sd": float("nan"),
+                "se": float("nan"), "t": float("nan")}
+    sd = float(d.std(ddof=1))
+    se = sd / np.sqrt(n) if sd > 0 else float("nan")
+    return {"n": n, "mean": float(d.mean()), "sd": sd, "se": se,
+            "t": float(d.mean() / se) if se and np.isfinite(se) else float("nan")}

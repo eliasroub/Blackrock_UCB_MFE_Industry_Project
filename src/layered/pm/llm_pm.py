@@ -48,7 +48,9 @@ from src.layered.contracts import (
     StrategyTrade,
 )
 from src.layered.pm.board import Meeting, ViewBoard
-from src.layered.pm.brief import render_brief, scrub_report_dates
+from src.layered.pm.brief import (
+    DISCLOSURE_ARMS, placebo_date, render_brief, scrub_report_dates,
+)
 from src.layered.pm.disagreement import panel_disagreement
 from src.layered.pm.mandate import render_mandate
 
@@ -140,6 +142,17 @@ The remaining fields are each their own field too. Do not restate them inside "n
 _ABSTENTION = """You are not required to have a view on every driver. Leaving a driver
 out is a legitimate answer when the panel gives you no basis for one, and is better
 than a confident number you cannot justify from what you were shown."""
+
+# The `date_warned` half of the disclosure arm. It names NO date itself, deliberately:
+# `_system_prompt()` takes no meeting, and `run_pm_ic` records one system prompt in the
+# sidecar for the whole run, so a per-meeting system prompt would make that record a
+# lie. It points at the date in the brief instead. The instruction lives here rather
+# than in the brief because the brief is *evidence* — `brief_sha256` means "what the PM
+# was shown of the panel", and an instruction inside it would corrupt that meaning.
+_DATE_WARNING = """The brief names the date of this meeting. Use only information that
+was available on or before that date. Do not use anything you know about what happened
+after it — no later data, no later policy decisions, no later market moves. Judge from
+the reports in front of you."""
 
 # ── memory ──────────────────────────────────────────────────────────────────
 # The PM used to be stateless: it never saw its own previous arbitration or the trade it
@@ -497,7 +510,8 @@ class LLMPM:
 
     def __init__(self, pod: str, config: dict, llm=None,
                  max_report_words: Optional[int] = None, blind: Optional[str] = None,
-                 use_memory: bool = False, perturbation=None):
+                 use_memory: bool = False, perturbation=None,
+                 disclose: Optional[str] = None):
         self.pod = pod
         self.config = config
         self.llm = llm
@@ -516,6 +530,14 @@ class LLMPM:
         # scramble; the shared string perturbations otherwise). ``None`` is the shipped
         # path and reproduces byte-for-byte. Duck-typed, so no import is needed here.
         self.perturbation = perturbation
+        # The date-disclosure leak arm. Rejected loudly on a typo rather than silently
+        # ignored, because a misspelled arm would run the shipped path and then be
+        # scored as a treatment — the one failure here that produces a wrong number
+        # instead of an error.
+        if disclose is not None and disclose not in DISCLOSURE_ARMS:
+            raise ValueError(f"disclose must be one of {DISCLOSURE_ARMS} or None, "
+                             f"got {disclose!r}")
+        self.disclose = disclose
         self.last_raw: Optional[str] = None
 
     @classmethod
@@ -611,6 +633,11 @@ class LLMPM:
                 "You have been shown one analyst's report. Report only on that "
                 "analyst's driver."
             )
+        # Only the warned arm changes the system prompt. `date` and `placebo` leave it
+        # untouched and therefore share it byte-for-byte, which is what makes the
+        # placebo a matched null: the two arms differ in the brief and nowhere else.
+        if self.disclose == "date_warned":
+            parts.append(_DATE_WARNING)
         parts.append(_CALIBRATION_RATE if self.answer_space == "rate"
                      else _CALIBRATION_DRIVER)
         parts.append(_ABSTENTION)
@@ -618,6 +645,21 @@ class LLMPM:
             parts.append(_MEMORY_CONTRACT)
         parts.append(_OUTPUT_CONTRACT)
         return "\n\n".join(p for p in parts if p)
+
+    def _disclosed_date(self, meeting: Meeting) -> Optional[pd.Timestamp]:
+        """The date this arm shows the PM, or None on the shipped path.
+
+        Derived from ``meeting.asof`` at render time rather than stashed when the
+        meeting was built, so the brief the runner records and the brief ``arbitrate``
+        sends are the same bytes by construction — there is no state that can go stale
+        between the two renders and quietly caption a meeting with its predecessor's
+        date.
+        """
+        if self.disclose in ("date", "date_warned"):
+            return meeting.asof
+        if self.disclose == "placebo":
+            return placebo_date(meeting.asof)
+        return None
 
     def _render_memory(self, memory: ArbitratedView) -> str:
         """The previous arbitration, replayed without a date.
@@ -658,7 +700,8 @@ class LLMPM:
         """The brief. ``memory`` defaults to None so every caller that inspects a prompt
         without running a meeting — the dry-run above all — keeps working unchanged."""
         brief = render_brief(meeting, drivers=self.reads,
-                             max_report_words=self.max_report_words, blind=self.blind)
+                             max_report_words=self.max_report_words, blind=self.blind,
+                             disclose_date=self._disclosed_date(meeting))
         prompt = brief if memory is None else f"{self._render_memory(memory)}\n\n{brief}"
         # String-level perturbations (whitespace, scaffolding rewording) act on the
         # assembled prompt, here, so ``arbitrate`` (which re-renders through this method)

@@ -40,11 +40,13 @@ from src.layered.evaluation.trade_pnl import (forward_yield_change, load_trades,
 # never touching ``layered.pm``. (``disagreement_signal`` is the opposite — it reuses
 # ``pm_bench``'s clock rebuild, so it stays import-by-path only.)
 from src.layered.evaluation.perturbation_bench import (direction_response, ic_dispersion,
-                                                       ic_stability, scramble_response)
+                                                       ic_stability, paired_arm_test,
+                                                       pm_response, scramble_response)
 
 __all__ = ["ICEvaluator", "ICResult", "FeaturePanel", "release_dates", "required_ic",
            "Run", "load_run", "discover_runs", "view_from",
            "PMRun", "load_pm_run", "discover_pm_runs",
            "load_trades", "yield_pnl", "forward_yield_change", "score_trades",
            "trade_validity",
-           "direction_response", "ic_stability", "ic_dispersion", "scramble_response"]
+           "direction_response", "ic_stability", "ic_dispersion", "scramble_response",
+           "pm_response", "paired_arm_test"]

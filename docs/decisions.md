@@ -313,3 +313,95 @@ against a synthetic multi-revision history; `load_series` preferring vintage dat
 fixed lag; the fixed-lag regression path for an unvendored series; per-row fallback under
 partial vintage coverage; the monotonicity guard against a corrupted vintage file; and
 `fred_vintage.available()`/`load_release_dates()` directly. Full suite 166 → 170.
+
+---
+
+## 2026-07-24 — The PM date scrub gets a leak arm, as a flag and not a perturbation (`src/layered/pm/brief.py`)
+
+**Decision.** Add `--disclose-date {date,date_warned,placebo}` to `run_pm_ic`, threaded
+like `--blind` through `build_pm` → `LLMPM` → `render_brief`. `None` is the shipped path
+and reproduces byte-for-byte. `render_brief` takes a *date*, not a boolean, so the
+treatment (`meeting.asof`) and the matched null (`placebo_date(meeting.asof)`, locked at
+−5 years) run down one code path and are byte-matched by construction.
+
+**Why.** The PM brief withholds the date deliberately, and that defence has never been
+priced. `fomc-recall-probe` measured the analyst text layer — 74% exact-meeting
+identification of date-scrubbed statements — but the PM layer's defence is structural
+(relative ages, whole-brief scrub) rather than textual, so the earlier result does not
+transfer. The only way to price it is to hand the date over and measure what changes.
+
+**Why not a `--perturb` registry entry.** Three reasons, in ascending order of weight.
+It is additive and semantic where every registered perturbation is meaning-preserving.
+`apply_prompt` receives only a string, so a registry version would have to stash
+`meeting.asof` during `apply_meeting` and read it back later — mutable state in a class
+whose contract is purity, and one whose failure mode is silent: a stale stash captions a
+meeting with its predecessor's date and every artifact records the well-formed lie.
+Decisively, keeping it out of `_PM` is what lets `PM_NAMES` be asserted uniformly
+date-free; with the arm inside, that sweep needs a carve-out, and a carve-out is how the
+next perturbation smuggles a date in unnoticed.
+
+**The one silent failure mode, and the guard.** The injection runs *after*
+`scrub_report_dates`. One line earlier and the scrubber rewrites "30 June 2023" to
+"[date]", the arm renders byte-identical to its own control, and the experiment reports
+a confident NO-EFFECT having measured nothing.
+`test_a_disclosed_date_survives_the_scrub` exists solely for that, and was verified by
+mutation: moving the injection above the scrub fails it (and
+`test_report_prose_is_still_scrubbed_under_disclosure`) with the intended message.
+
+**Also found while wiring it.** The PM path is uncached and runs at the API-default
+temperature — `AnthropicClient` is constructed in `preflight_llm` with neither
+`temperature` nor `cache_dir`. So the baseline already disagrees with itself, reruns are
+not $0 here despite the general house rule, and any movement number from a one-variable
+PM arm is uninterpretable without a resample floor. This is recorded because it
+retroactively qualifies every existing single-run PM contrast, not only this one.
+
+**Cost / alternative.** Considered two cells (off/date) and a whitespace-only null.
+Rejected: `whitespace` triples every blank line, so it changes far more bytes than a
+one-line insert while adding no proposition at all — it can over- or under-state the
+floor with no way to tell which. The placebo adds the same proposition about the wrong
+period, which is the contrast that isolates "this date carries information" from "a
+date-shaped sentence moved the model". Whitespace is kept as a second floor because it
+is already implemented and makes the floor conservative.
+
+**Status.** Code landed and unrun. `--disclose-date` is refused together with `--memory`
+(the memory block renders above the brief and would change the disclosure line's
+salience). The experiment is preregistered as `pm-date-disclosure` in `EXPERIMENTS.md`
+with its gates, floors, robustness gates and an explicit statement that it is a
+one-sided instrument: at n≈119 meetings the minimum detectable hit-rate change is ≈0.041,
+so a null does not rule out a smaller leak.
+
+**Tests.** Full suite 222 → 239. Twelve in `test_pm_prompt_guardrails.py`: the off-arm
+byte-identity, the scrub-survival guard, the strip-one-block one-variable check, report
+prose still scrubbed under disclosure, the placebo matched at every meeting 2016-2025,
+the shared system prompt between `date` and `placebo`, the warning naming no date, an
+unknown arm refused, and the wiring reaching the assembled user prompt. Two of them
+close pre-existing coverage holes unrelated to this arm: nothing iterated `PM_NAMES`
+asserting perturbed PM prompts stay date-free, and nothing asserted any pod's *system*
+prompt is date-free. Five in `test_perturbation_bench.py` for the new `pm_response` /
+`paired_arm_test` comparators, including a regression lock that `scramble_response`'s
+committed rule is unchanged.
+
+## 2026-07-24 — `pm_response` is a second PM comparator, not a fix to `scramble_response` (`src/layered/evaluation/perturbation_bench.py`)
+
+**Decision.** Add `pm_response(a, b)` and `paired_arm_test(a, b)` alongside
+`scramble_response`, which is left exactly as it is.
+
+**Why a second function.** The two committed comparators already disagree on what a flip
+is: `direction_response` counts a strict sign reversal and books a move-to-flat
+separately as a withdrawn call, while `scramble_response` uses `sign != sign` and folds
+the two together. For this experiment the difference is not academic — the disclosure
+arm's most plausible response is withdrawing or sharpening a call rather than reversing
+it, which is precisely where the definitions diverge. `pm_response` takes the strict
+rule. `scramble_response` is not changed because its definition is already committed to
+a recorded verdict; rewriting it would silently restate a published number.
+
+**The clustering point.** `pm_response` returns `per_meeting`, and `paired_arm_test`
+consumes it. Drivers within a meeting share one brief, one panel and one call, so the
+meeting is the unit of observation; a t-statistic over cells would be inflated by
+roughly √k for a k-driver pod. The `fomc-recall-probe` prereg already made this
+correction for clustered cue items — this keeps the repo from regressing on it one layer
+up.
+
+**Status.** Generic by design: neither function inspects either run's config, so both
+serve the scramble arm, the disclosure arms, and any future pair of PM runs on a shared
+meeting grid.
