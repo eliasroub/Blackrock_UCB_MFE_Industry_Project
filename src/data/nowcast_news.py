@@ -14,9 +14,9 @@ buy recency the analyst cannot use — its horizon is one release or one week ah
 purpose: a long run of dated entries is itself a calendar, and a model shown one
 can infer the period even with every explicit date string removed.
 
-The processed file is vendored at ``data/news/nowcast_2024_2025.json``, keyed by
-the Sunday (or any consistent weekday) each week's window closes on, in
-``YYYY-MM-DD`` format. Override with ``NOWCAST_NEWS_PATH`` if it sits elsewhere.
+The processed file is vendored at ``data/news/nowcast_2023_2025.json``, keyed by
+the date each week closes on, in ``YYYY-MM-DD`` format (Dec 2023 → Feb 2025, 109 weeks).
+Override with ``NOWCAST_NEWS_PATH`` if it sits elsewhere.
 """
 from __future__ import annotations
 
@@ -29,7 +29,7 @@ import pandas as pd
 
 # .../src/data/nowcast_news.py -> parents[2] == repo root
 _DEFAULT_PATH = (Path(__file__).resolve().parents[2]
-                 / "data" / "news" / "nowcast_2024_2025.json")
+                 / "data" / "news" / "nowcast_2023_2025.json")
 
 
 class NowcastNewsCorpus:
