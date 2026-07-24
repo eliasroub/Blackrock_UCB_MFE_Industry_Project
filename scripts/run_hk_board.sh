@@ -11,12 +11,17 @@ cd "$(dirname "$0")/.."
 
 MODEL="${MODEL:-claude-haiku-4-5-20251001}"
 START="${START:-2016-01-01}"
-END="${END:-2025-12-31}"
+END="${END:-2026-06-30}"
 OUTDIR="${OUTDIR:-reports/hk}"
 DRIVERS=("$@")
 if [ ${#DRIVERS[@]} -eq 0 ]; then
+  # All 17. The 7 US macro read FOMC; the 6 international read their own central bank
+  # (ECB/BoE/BoJ, declared per persona); the 4 equity personas carry placeholder cues and
+  # are reported separately — see docs/full-pipeline-plan.md.
   DRIVERS=(inflation inflation_expectations labor_tightness term_premium
-           financial_conditions balance_sheet curve_slope)
+           financial_conditions balance_sheet curve_slope
+           ea_rates uk_rates jp_rates ea_equity uk_equity jp_equity
+           positioning risk_appetite sector_breadth vol_regime)
 fi
 mkdir -p "$OUTDIR" logs
 
@@ -31,6 +36,7 @@ leg () {                       # leg <driver> <arm-name> <extra flags...>
 for arm_spec in "on:" "none:--text-mode none" "whole:--text-mode whole"; do
   arm="${arm_spec%%:*}"; flags="${arm_spec#*:}"
   echo "[board] === arm '$arm' over ${#DRIVERS[@]} drivers, in parallel ==="
+  echo "[board]     window $START..$END  model $MODEL  out $OUTDIR"
   for d in "${DRIVERS[@]}"; do
     # shellcheck disable=SC2086
     leg "$d" "$arm" $flags &
