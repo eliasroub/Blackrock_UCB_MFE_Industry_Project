@@ -65,7 +65,15 @@ def test_intl_personas_declare_their_bank():
 
 
 def test_fomc_default_is_untouched():
-    """Personas without text_corpus still resolve to the FOMC corpus."""
-    assert persona_corpus_path("inflation") is None
+    """Personas without text_corpus still resolve to the FOMC corpus.
+
+    vol_regime is features-only by design and declares no corpus; the FOMC
+    macro personas now declare their anonymized excerpt corpora (r9), so the
+    fallback is asserted on the persona that still relies on it.
+    """
+    assert persona_corpus_path("vol_regime") is None
     corpus = FomcCorpus(doc_type="statement")
     assert corpus.count > 150  # the vendored FOMC statements
+    # the macro personas point at their per-driver anonymized excerpts
+    p = persona_corpus_path("inflation")
+    assert p is not None and p.name == "excerpts_inflation.jsonl" and p.exists()
