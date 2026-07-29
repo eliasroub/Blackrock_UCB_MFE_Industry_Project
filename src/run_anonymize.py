@@ -6,7 +6,9 @@ Two Haiku passes over data/fomc/documents.jsonl (statements only):
           or WHICH named events it refers to, preserving every number and the
           exact policy stance wording  → data/fomc/statements_anon.jsonl
   pass 2  from each anonymized statement, extract the passages relevant to each
-          FOMC text persona            → data/fomc/excerpts_<persona>.jsonl
+          analyst persona (``--group macro`` = the 7 FOMC text personas,
+          ``--group equity`` = the 4 US internals personas)
+                                        → data/fomc/excerpts_<persona>.jsonl
           (same schema as documents.jsonl, so FomcCorpus loads them unchanged —
           wiring a persona to its excerpts is a one-line `text_corpus:` edit)
 
@@ -45,9 +47,7 @@ ANON_PATH = REPO_ROOT / "data" / "fomc" / "statements_anon.jsonl"
 RESULTS_DIR = REPO_ROOT / "results" / "anonymize"
 PERSONA_DIR = REPO_ROOT / "src" / "layered" / "analysts" / "personas"
 
-# The 7 FOMC macro personas that consume statement text. The 4 features-only
-# US-equity personas (vol_regime, sector_breadth, positioning, risk_appetite)
-# are deliberately excluded — they do not read corpus text by design (r7).
+# The 7 FOMC macro personas that consume statement text.
 FOMC_TEXT_PERSONAS = (
     "inflation",
     "inflation_expectations",
@@ -57,6 +57,52 @@ FOMC_TEXT_PERSONAS = (
     "balance_sheet",
     "financial_conditions",
 )
+
+# The 4 US equity internals personas (r7, originally features-only). Their YAML
+# text_cues are single-token placeholders, so the pass-2 roster uses the
+# hand-written relevance blocks below instead of persona_spec(): each maps the
+# analyst's graded measurement to the FOMC statement language that bears on it.
+EQUITY_PERSONAS = ("vol_regime", "sector_breadth", "positioning", "risk_appetite")
+
+EQUITY_SPECS = {
+    "vol_regime": (
+        "- name: vol_regime\n"
+        "  specialty: equity volatility regime (implied and realized S&P 500 volatility)\n"
+        "  mandate: Judges whether implied volatility rises or eases over the coming week.\n"
+        "  relevant passages: financial-market stress or strain; market functioning and\n"
+        "  liquidity; emergency or crisis-response measures; uncertainty about the outlook;\n"
+        "  shifts in the balance of risks; anything that would reprice equity risk."
+    ),
+    "sector_breadth": (
+        "- name: sector_breadth\n"
+        "  specialty: US equity sector rotation and market breadth\n"
+        "  mandate: Judges whether market breadth broadens or narrows over the coming week.\n"
+        "  relevant passages: sector-level activity reads — household and consumer spending,\n"
+        "  business fixed investment, housing, manufacturing and industrial production,\n"
+        "  exports, services — and whether strength or weakness is described as broad-based\n"
+        "  versus concentrated in particular sectors."
+    ),
+    "positioning": (
+        "- name: positioning\n"
+        "  specialty: S&P 500 futures positioning and investor crowding\n"
+        "  mandate: Judges whether asset managers add or unwind net longs over the coming week.\n"
+        "  relevant passages: forward guidance and the policy path — pace and timing language\n"
+        "  ('patient', 'gradual', 'some further firming', 'for some time'); asset purchase or\n"
+        "  runoff announcements and pace changes; surprises or commitments that would trigger\n"
+        "  portfolio repositioning and flows."
+    ),
+    "risk_appetite": (
+        "- name: risk_appetite\n"
+        "  specialty: cross-asset risk appetite (metals, rates, and currencies)\n"
+        "  mandate: Judges whether growth confidence improves or deteriorates over the coming\n"
+        "  week (graded on the 10y-2y curve slope; steepening = growth-positive).\n"
+        "  relevant passages: the overall growth assessment and outlook; downside-risk or\n"
+        "  recession language; the stance of policy accommodation or restriction; the\n"
+        "  balance-of-risks sentence; commodity and global-demand references."
+    ),
+}
+
+PERSONA_GROUPS = {"macro": FOMC_TEXT_PERSONAS, "equity": EQUITY_PERSONAS}
 
 # Haiku 4.5, USD per 1M tokens.
 PRICE_IN, PRICE_OUT = 1.0, 5.0
@@ -196,8 +242,12 @@ def max_tokens_for(docs: list[dict]) -> int:
 
 
 def persona_spec(name: str, persona_dir: Path = PERSONA_DIR) -> str:
-    """Compact spec block for the pass-2 roster, read from the persona YAML
-    (display_name + first mandate bullets + cue vocabulary). Read-only."""
+    """Compact spec block for the pass-2 roster. Equity personas use the
+    curated EQUITY_SPECS blocks (their YAML cues are placeholders); macro
+    personas are read from the persona YAML (display_name + first mandate
+    bullets + cue vocabulary). Read-only."""
+    if name in EQUITY_SPECS:
+        return EQUITY_SPECS[name]
     import yaml
 
     cfg = yaml.safe_load((persona_dir / f"{name}.yaml").read_text())
@@ -208,6 +258,13 @@ def persona_spec(name: str, persona_dir: Path = PERSONA_DIR) -> str:
         f"  specialty: {cfg.get('display_name', name)}\n"
         f"  mandate: {mandate}\n"
         f"  vocabulary: {cues}"
+    )
+
+
+def pass2_results_path(group: str) -> Path:
+    """Per-group pass-2 journal (macro keeps the original filename)."""
+    return RESULTS_DIR / (
+        "pass2_results.jsonl" if group == "macro" else f"pass2_{group}_results.jsonl"
     )
 
 
@@ -359,11 +416,11 @@ def make_client(docs: list[dict]) -> AnthropicClient:
     )
 
 
-def estimate(docs: list[dict]) -> dict:
+def estimate(docs: list[dict], personas: tuple[str, ...] = FOMC_TEXT_PERSONAS) -> dict:
     text_chars = sum(len(d["text"]) for d in docs)
     text_tok = text_chars / 4
     sys1 = len(PASS1_SYSTEM) / 4
-    roster = "\n".join(persona_spec(p) for p in FOMC_TEXT_PERSONAS)
+    roster = "\n".join(persona_spec(p) for p in personas)
     sys2 = (len(PASS2_SYSTEM) + len(roster)) / 4
     n = len(docs)
     p1_in, p1_out = n * sys1 + text_tok, text_tok  # rewrite ≈ same length
@@ -443,17 +500,19 @@ def cmd_build_anon(args) -> None:
 def cmd_pass2(args) -> None:
     if not ANON_PATH.exists():
         raise SystemExit("run build-anon first")
+    personas = PERSONA_GROUPS[args.group]
     anon = load_statements(ANON_PATH)
-    est = estimate(anon)
+    est = estimate(anon, personas)
     already = prior_spend()
     if over_cap(already, est["pass2"]["standard_usd"], args.max_cost_usd):
         raise SystemExit(
             f"projected pass-2 cost {est['pass2']['standard_usd']} + spent {already} "
             f"exceeds cap {args.max_cost_usd}"
         )
-    print(f"pass2 estimate: ${est['pass2']['standard_usd']} (cap {args.max_cost_usd})")
-    roster = "\n".join(persona_spec(p) for p in FOMC_TEXT_PERSONAS)
-    tool = pass2_tool(FOMC_TEXT_PERSONAS)
+    print(f"pass2[{args.group}] estimate: ${est['pass2']['standard_usd']} "
+          f"(cap {args.max_cost_usd})")
+    roster = "\n".join(persona_spec(p) for p in personas)
+    tool = pass2_tool(personas)
     client = make_client(anon)
     client.validate()
 
@@ -467,12 +526,14 @@ def cmd_pass2(args) -> None:
         return over_cap(already, client.usage_summary()["est_cost_usd"], args.max_cost_usd)
 
     failures = run_pass(
-        anon, RESULTS_DIR / "pass2_results.jsonl", request_fn, complete_fn,
+        anon, pass2_results_path(args.group), request_fn, complete_fn,
         workers=args.workers, cap_fn=cap_fn,
     )
     summary = client.usage_summary()
-    total = record_spend("pass2", summary)
-    print(f"pass2 usage: {json.dumps(summary)}\nactual spend so far: ${total}")
+    total = record_spend(f"pass2_{args.group}" if args.group != "macro" else "pass2",
+                         summary)
+    print(f"pass2[{args.group}] usage: {json.dumps(summary)}\n"
+          f"actual spend so far: ${total}")
     if failures:
         print(f"FAILED docs ({len(failures)}): {sorted(failures)}", file=sys.stderr)
         raise SystemExit(1)
@@ -513,12 +574,12 @@ def build_excerpt_files(
 
 def cmd_build_excerpts(args) -> None:
     anon = load_statements(ANON_PATH)
-    results = load_results(RESULTS_DIR / "pass2_results.jsonl")
+    results = load_results(pass2_results_path(args.group))
     missing = [d["doc_id"] for d in anon if d["doc_id"] not in results]
     if missing:
         raise SystemExit(f"no pass-2 result for {len(missing)} docs "
-                         f"(rerun pass2): {missing[:5]}...")
-    paths = build_excerpt_files(anon, results)
+                         f"(rerun pass2 --group {args.group}): {missing[:5]}...")
+    paths = build_excerpt_files(anon, results, PERSONA_GROUPS[args.group])
     for persona, path in paths.items():
         print(f"wrote {path.name}")
     print(f"{len(paths)} excerpt corpora -> {ANON_PATH.parent}")
@@ -604,8 +665,10 @@ def main(argv: list[str] | None = None) -> None:
     sub.add_parser("estimate")
     sub.add_parser("pass1")
     sub.add_parser("build-anon")
-    sub.add_parser("pass2")
-    sub.add_parser("build-excerpts")
+    p2 = sub.add_parser("pass2")
+    p2.add_argument("--group", choices=sorted(PERSONA_GROUPS), default="macro")
+    be = sub.add_parser("build-excerpts")
+    be.add_argument("--group", choices=sorted(PERSONA_GROUPS), default="macro")
     v = sub.add_parser("verify")
     v.add_argument("--sample", type=int, default=3)
     args = ap.parse_args(argv)

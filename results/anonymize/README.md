@@ -7,7 +7,10 @@ in `data/fomc/` (`statements_anon.jsonl`, `excerpts_<persona>.jsonl`).
 - `pass1_results.jsonl` — one row per doc: the anonymized rewrite. This file
   (not the gitignored `llm_cache/`) is what makes reruns free: `pass1` skips
   any doc_id already journaled here.
-- `pass2_results.jsonl` — one row per doc: per-persona verbatim excerpts.
+- `pass2_results.jsonl` — one row per doc: per-persona verbatim excerpts for
+  the 7 FOMC macro personas.
+- `pass2_equity_results.jsonl` — same, for the 4 US equity internals personas
+  (`pass2 --group equity`; curated relevance blocks in `run_anonymize.py`).
 - `spend.json` — actual usage/cost per pass (pass-2 tally lost to a crash
   after the calls completed; recorded at its pre-run estimate, flagged).
 - `verify.json` — the offline verification report: date-leak detector
@@ -16,5 +19,5 @@ in `data/fomc/` (`statements_anon.jsonl`, `excerpts_<persona>.jsonl`).
 - `llm_cache/` — gitignored AnthropicClient disk cache (belt to the results
   files' suspenders).
 
-Total spend: ≈ $1.37 (est. $1.47). Rerunning any subcommand is $0 unless
-`documents.jsonl` or the prompts change.
+Total spend: ≈ $2.11 (macro passes ≈ $1.37 est. $1.47; equity pass $0.74).
+Rerunning any subcommand is $0 unless `documents.jsonl` or the prompts change.

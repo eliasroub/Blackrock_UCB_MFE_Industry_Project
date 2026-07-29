@@ -228,16 +228,34 @@ def test_record_spend_twice(monkeypatch, tmp_path):
 
 
 def test_persona_corpus_wiring():
-    """FOMC-default fallback + excerpt wiring (moved from test_intl_text.py
-    when the international analysts were removed in the US-only refocus).
-
-    vol_regime is features-only by design and declares no corpus; the FOMC
-    macro personas declare their anonymized excerpt corpora (r9).
+    """Every persona resolves to its per-driver anonymized excerpt corpus
+    (moved from test_intl_text.py at the US-only refocus; the equity personas
+    gained text alongside the macro ones, so the FOMC-default fallback is now
+    the safety net for future corpus-less personas rather than a live path).
     """
+    from src.run_anonymize import EQUITY_PERSONAS
     from src.layered.analysts.build import persona_corpus_path
 
-    assert persona_corpus_path("vol_regime") is None
     corpus = FomcCorpus(doc_type="statement")
-    assert corpus.count > 150  # the vendored FOMC statements
-    p = persona_corpus_path("inflation")
-    assert p is not None and p.name == "excerpts_inflation.jsonl" and p.exists()
+    assert corpus.count > 150  # the vendored FOMC statements (default path intact)
+    for driver in FOMC_TEXT_PERSONAS + EQUITY_PERSONAS:
+        p = persona_corpus_path(driver)
+        assert p is not None and p.name == f"excerpts_{driver}.jsonl", driver
+        assert p.exists(), driver
+
+
+def test_equity_group_specs_and_paths():
+    """The equity pass-2 arm: curated roster blocks (YAML cues are
+    placeholders) and a separate journal so macro results are never mixed."""
+    from src.run_anonymize import (
+        EQUITY_PERSONAS, PERSONA_GROUPS, pass2_results_path)
+
+    assert PERSONA_GROUPS["equity"] == EQUITY_PERSONAS
+    for p in EQUITY_PERSONAS:
+        spec = persona_spec(p)
+        assert f"name: {p}" in spec
+        assert "relevant passages:" in spec  # curated block, not the YAML cues
+    tool = pass2_tool(EQUITY_PERSONAS)
+    assert set(tool["input_schema"]["properties"]) == set(EQUITY_PERSONAS)
+    assert pass2_results_path("macro").name == "pass2_results.jsonl"
+    assert pass2_results_path("equity").name == "pass2_equity_results.jsonl"
