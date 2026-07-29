@@ -1,0 +1,18 @@
+{
+  "pass1": {
+    "model": "claude-haiku-4-5-20251001",
+    "calls": 172,
+    "cached_calls": 0,
+    "retries": 0,
+    "input_tokens": 345019,
+    "output_tokens": 94904,
+    "est_cost_usd": 0.8195
+  },
+  "total_usd": 1.3695,
+  "pass2": {
+    "model": "claude-haiku-4-5-20251001",
+    "calls": 172,
+    "est_cost_usd": 0.55,
+    "note": "usage tally lost to a crash after the run; 0.55 is the pre-run estimate"
+  }
+}

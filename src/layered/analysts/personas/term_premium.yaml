@@ -60,3 +60,7 @@ text_cues:
   - issuance
   - supply
   - duration
+
+# Anonymized, per-driver excerpt corpus (Haiku pass over the statement corpus;
+# see results/anonymize/ and src/run_anonymize.py). Use with --text-mode whole.
+text_corpus: data/fomc/excerpts_term_premium.jsonl
