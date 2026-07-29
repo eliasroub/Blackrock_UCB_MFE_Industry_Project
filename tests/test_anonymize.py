@@ -225,3 +225,19 @@ def test_record_spend_twice(monkeypatch, tmp_path):
     ra.record_spend("pass1", {"est_cost_usd": 0.8})
     total = ra.record_spend("pass2", {"est_cost_usd": 0.5})
     assert total == pytest.approx(1.3)
+
+
+def test_persona_corpus_wiring():
+    """FOMC-default fallback + excerpt wiring (moved from test_intl_text.py
+    when the international analysts were removed in the US-only refocus).
+
+    vol_regime is features-only by design and declares no corpus; the FOMC
+    macro personas declare their anonymized excerpt corpora (r9).
+    """
+    from src.layered.analysts.build import persona_corpus_path
+
+    assert persona_corpus_path("vol_regime") is None
+    corpus = FomcCorpus(doc_type="statement")
+    assert corpus.count > 150  # the vendored FOMC statements
+    p = persona_corpus_path("inflation")
+    assert p is not None and p.name == "excerpts_inflation.jsonl" and p.exists()
