@@ -13,6 +13,118 @@ measured).
 
 ## Preregistered (pending)
 
+### analyst-4arm-haiku — preregistered 2026-07-29 (unrun)
+
+**Question.** The analyst layer varies exactly one thing: what text an analyst is
+fed. Four arms over the same 11 personas, same window, same model, same features.
+What does text buy, and how much of what it buys is the model recognising the
+period rather than reading the evidence?
+
+**Relation to Rejected Ideas.** Does not retry "light preprocessing as recall
+defense" (killed by fomc-recall-probe 2026-07-22). That entry killed *scrubbing as
+a fix*. The `plain` arm here prices what the anonymization bought, on the same
+locked identifiability logic, and produces a diagnostic rather than a signal. It
+invokes the standing house-rule carve-out: **date-blind unless leakage is the thing
+being measured.** See docs/decisions.md 2026-07-29.
+
+**Arms.** `--text-arm {anon_full, anon_cue, none, plain}`, one run per
+(persona x arm). Arms 1-3 read the anonymized corpora; arm 4 reads the raw dated
+statements with the scrub off. Model pinned `claude-haiku-4-5-20251001`,
+`--max-tokens 2000`, `--memory` on, news OFF, window **2016-01-01 to 2026-06-30**,
+month-end or release clocks as each persona declares.
+
+| arm | corpus | scrub | role |
+|---|---|---|---|
+| `none` | — | — | the numbers-only floor |
+| `anon_cue` | `excerpts_<driver>.jsonl` | on | the driver-partitioned extract |
+| `anon_full` | `statements_anon.jsonl` | on | the whole anonymized statement |
+| `plain` | `documents.jsonl` | **off** | the leak arm; contrast is `anon_full` only |
+
+**Roster (11).** inflation, inflation_expectations, labor_tightness, term_premium,
+financial_conditions, balance_sheet, curve_slope, positioning, sector_breadth,
+vol_regime, risk_appetite.
+
+**Primary metric.** Rank IC of signed conviction against the next-release change in
+the driver's own `level_feature`, per (persona x arm), with n and t reported. This
+is the existing `ICEvaluator` path, unchanged.
+
+**Secondary, descriptive.** Driver x instrument IC matrix against DGS2, DGS10,
+DGS3MO, T10YIE. Input-relevance aggregation over `input_ranking`. Report-vs-header
+redundancy. Cross-analyst correlation per arm via `compare_arms`.
+
+**Directional predictions, recorded before the run.** These are what make a
+confirmation worth more than a surprise:
+
+1. **Text does not help the four equity analysts.** They were designed
+   features-only; the r7 finding was that a shared text feed collapsed
+   cross-analyst independence 0.15 → 0.81. Predict no significant IC gain from
+   `none` to `anon_full` on positioning, sector_breadth, vol_regime, risk_appetite.
+2. **`risk_appetite` shows the largest `plain` − `anon_full` delta.** Its persona
+   header records that in r7 its *dated* arm was RECALL-POTENT — "the model minted
+   alpha from the calendar alone."
+3. **`positioning`'s `anon_cue` equals its `none`.** Its excerpt is the placeholder
+   at all 172 statements: the FOMC does not discuss investor positioning. Pinned by
+   test, so this is a consistency check on the harness, not a finding.
+4. **Cross-analyst correlation rises with text volume** (`none` < `anon_cue` <
+   `anon_full`), the convergence cost the partition exists to limit. Prior
+   measurement on a different board was 0.22 → 0.34.
+
+**Decision rules (LOCKED).**
+1. An arm "helps" a persona iff its IC exceeds the `none` arm's by a margin whose
+   paired t >= 2.0 on the shared release dates. At n≈125 the detectable IC is
+   ≈0.178, below the IR=1.0 bar of 0.289, so a persona worth having is also visible.
+2. **Leak verdict, `plain` vs `anon_full`.** LEAK-EXPLOITED iff `plain` IC exceeds
+   `anon_full` IC with paired t >= 2.0. ANONYMIZATION-SUFFICIENT iff |ΔIC| is
+   insignificant. Only LEAK-EXPLOITED permits the claim that the un-anonymized text
+   carries recoverable period information at the analyst layer.
+3. **The `plain` arm never enters an analyst result table.** Its IC is reported only
+   in the leak section, labelled as such, and never as the analyst's performance.
+4. **Kill criterion.** If LEAK-EXPLOITED fires, every in-window text-channel IC in
+   this project must carry the measured ΔIC as a stated upper bound on how much of
+   it could be recall.
+
+**Robustness gates.** The verdict must be unchanged (a) per persona, never pooled —
+excerpt coverage ranges 0-100% across drivers, so a pooled delta is dominated by
+whichever personas got text; (b) excluding positioning, whose cued arm carries no
+text; (c) excluding risk_appetite, so the RECALL-POTENT prior cannot carry the
+result alone; (d) on the 2016-2019 / 2020-2022 / 2023-2026 subperiods.
+
+**Power, stated honestly.** n≈125 monthly observations per leg; ≈17 after
+2024-12-31. The out-of-sample slice needs IC >= 0.459 for t=2, over 1.5x the
+economic bar, so it is **reported descriptively only — sign agreement and hit rate,
+no t-statistic, no pooling.** The three FIXABLE legs from first-final-results
+(labor_tightness 0.155, curve_slope 0.119, inflation_expectations −0.079) sit below
+even the in-sample detection threshold; a null on those is uninformative and must
+not be read as a fix having failed.
+
+**Multiplicity.** 11 personas x 4 arms = 44 IC cells and 55 correlation pairs.
+Expect ≈2 arm comparisons and ≈3 correlation pairs at |t|>2 by chance. Read sign
+consistency across personas, not individual stars. The curve_slope/risk_appetite
+pair is a known duplicate (both graded on the 2s10s slope, outcome correlation
++0.951) and is excluded from `mean_abs` rather than allowed to inflate it.
+
+**Not comparable to the committed board.** `anon_cue` has no diff structure — the
+old `cue` arm rendered CHANGED/unchanged against the previous statement, this one
+renders a flat extract. Different treatment, not a re-run. The two must not appear
+in one table.
+
+**Implementation locks.**
+- Arm selected by `--text-arm`, recorded in `meta.config`, and in
+  `board.IDENTITY_KEYS` so a board cannot mix arms.
+- `anon_cue` renders `--text-mode whole`: the cueing happened offline, and regex
+  matching over a 175-342 character excerpt would filter twice.
+- Arm 2's text passed through two model passes (anonymize, then extract), so it is
+  not a deterministic transform of the raw statement. Journaled, temperature 0,
+  93-99% verbatim, $0 to reproduce — disclosed, not hidden.
+- Corpus pairing asserted on the real files before launch (172 rows, identical
+  release_date and doc_id sets across all 12 files).
+- **Cost.** ≈5,400 calls at a measured $0.005356/call ≈ **$29** (±15%), ~1.5-2h at
+  8-way. Requires explicit spend approval before launch.
+
+**Peeking status.** Genuinely preregistered: no analyst output exists on any arm.
+The numbers seen so far are excerpt coverage counts and rendered prompt lengths,
+which are inputs, not outcomes.
+
 ### recall-stratified-ic — analysis plan preregistered 2026-07-22 (binds a future run)
 
 **Purpose.** The accepted position ("live with the look-ahead bias") gets one

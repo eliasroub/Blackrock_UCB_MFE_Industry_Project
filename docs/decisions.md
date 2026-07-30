@@ -10,6 +10,61 @@ reasoning behind changes to it.
 
 ---
 
+## 2026-07-29 — The date scrub gets an opt-out, for one declared leak arm
+
+**What changed.** `TextSelector` takes `scrub: bool = True`. The `plain` text arm
+constructs it False, so that arm sees the raw dated statement. Every other caller
+keeps the default and every shipped path is byte-for-byte unchanged.
+
+**This narrows an earlier decision, and says so.** `analyst-layer.md` §2 decision 6
+put scrubbing in the selector base class with the rationale *"so no arm — including
+the control — can forget it."* An opt-out is precisely the mechanism that decision
+was written to make impossible. It is narrowed rather than reversed: the switch lives
+in the base class alongside the scrub, defaults to on, and travels bound to a corpus
+choice inside `arm_spec` so a caller cannot pick the raw corpus and forget the flag —
+which was the actual failure mode the original decision guarded against.
+
+**Why it is allowed at all.** `EXPERIMENTS.md` house rules bind every run to
+*"recall-aware design (date-blind unless leakage is the thing being measured)."*
+Leakage is what this arm measures. The distinction is the same one that licensed the
+recall probe: it produces a diagnostic, not a trading signal, and it tests the
+premise rather than retrying the rejected design. "Light preprocessing as recall
+defense" stays rejected — this arm does not propose preprocessing as a fix, it prices
+what the preprocessing bought.
+
+**Why the raw corpus is not enough on its own.** Pointing the selector at
+`documents.jsonl` without touching the scrub would render nearly the same bytes as the
+anonymized arm, and the experiment would report a confident null while measuring
+nothing. Two further couplings had to move with it:
+
+- **Chrome stripping is inside the same switch.** `cue._HEADER` matches the
+  *substituted* `[time]` token, so it only ever fires after a scrub. Left outside, an
+  unscrubbed arm would keep the dated header by regex accident rather than by design.
+  Now it is deliberate: the leak arm keeps the header.
+- **The system prompt branches.** It said *"Dates have been removed deliberately — do
+  not try to identify the calendar period."* Handing a model a dated document under
+  that instruction measures whether it obeys an obviously false instruction, not
+  whether it uses the date. The clause is now read off the selector's own `scrub`
+  state rather than a second constructor flag, so prompt and data cannot disagree.
+
+**Alternative rejected: route it through `--perturb`.** That registry is the repo's
+existing seam for evaluation-only arms and is already in `IDENTITY_KEYS`. It cannot
+work here: `apply_text` receives a `TextContext` whose sentences were scrubbed at
+`cue.py:65` / `whole.py:26`, and the raw document is gone by then. Re-reading the
+corpus from inside a perturbation would break the layering the seam exists to
+protect.
+
+**Guards, so this cannot leak into a result.** `text_arm` is in
+`board.IDENTITY_KEYS`, so an anonymized leg and a plain leg cannot assemble into one
+board in silence. The arm is named `plain` rather than `--no-scrub` so it reads as a
+condition, not a convenience. `tests/test_text_arms.py` is two-sided: the scrubbed
+arms must carry no year *and* `plain` must demonstrably carry one, so a scrub that
+stops working and an arm that stops un-scrubbing both fail loudly. And the honesty
+rule stands — **the `plain` arm's IC is a leak measurement and may never be cited as
+an analyst result.**
+
+**Cost.** Six files, all additive with unchanged defaults. Tests 255 → 266.
+
 ## 2026-07-22 — The mechanical PM is NOT a training-cutoff leak control
 
 **Finding.** The memory-on duration trade degrades sharply in the most recent period (hit
