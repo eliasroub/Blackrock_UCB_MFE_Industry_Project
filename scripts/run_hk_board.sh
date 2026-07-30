@@ -34,13 +34,15 @@
 # arm-major with anon_cue first — the shipped configuration, and the board the PM
 # layer would replay.
 #
-# JOBS: the binding constraint is this MACHINE, not the API. Measured limits on the
-# org this key belongs to are 10,000 req/min, 10M input tok/min, 2M output tok/min;
-# at the observed 2,989 in / 928 out tokens per call, even running all 44 legs at
-# once uses ~16% of the tightest limit. So rate limiting is not the reason to hold
-# back — 44 concurrent python processes each loading pandas and its own data bundle
-# is. 16 is a comfortable default on a 12-core box (~48 min for the full board);
-# drop to 8 on a smaller machine, raise toward 44 if memory allows.
+# JOBS defaults to ONE WAVE — every leg at once — because nothing measured stops it:
+#   API      10,000 req/min, 10M input tok/min, 2M output tok/min on this org (read
+#            off the response headers). All 44 legs concurrently, at the observed
+#            2,989 in / 928 out tokens per call, is ~16% of the tightest limit.
+#   memory   ~119 MB RSS per leg measured, so 44 legs is ~5.1 GB of 25.8 GB.
+#   CPU      each leg is ~99% blocked on HTTP; 44 processes on 12 cores is fine.
+# One wave means wall clock is the slowest single leg (~16-20 min) rather than
+# ceil(legs/JOBS) waves of it. Set JOBS lower on a smaller machine or a tighter
+# rate limit; it only ever costs time.
 #
 # Watch degraded counts regardless. A throttled or unauthenticated run does not
 # crash — preflight exits per leg on a bad key, but a mid-run 429 becomes an
@@ -55,7 +57,7 @@ MODEL="${MODEL:-claude-haiku-4-5-20251001}"
 START="${START:-2016-01-01}"
 END="${END:-2026-06-30}"
 OUTDIR="${OUTDIR:-reports/hk}"
-JOBS="${JOBS:-16}"
+JOBS="${JOBS:-}"          # empty = one wave; set a number to throttle
 ARMS="${ARMS:-anon_cue anon_full none plain}"
 
 DRIVERS=("$@")
@@ -90,6 +92,9 @@ JOBLIST=()
 for arm in $ARMS; do
   for d in "${DRIVERS[@]}"; do JOBLIST+=("$d:$arm"); done
 done
+
+# Default to one wave now that the leg count is known.
+[ -z "$JOBS" ] && JOBS=${#JOBLIST[@]}
 
 echo "[board] ${#JOBLIST[@]} legs (${#DRIVERS[@]} drivers x $(echo "$ARMS" | wc -w | tr -d ' ') arms), ${JOBS}-way"
 echo "[board]   window $START..$END   model $MODEL   out $OUTDIR"
