@@ -1,0 +1,736 @@
+# Smoke-pilot analyst reports — 2026-07-29
+
+18 calls, $0.137, Haiku, --memory on, --limit 3. Three drivers x two arms.
+Raw records: reports/_smoke/<driver>_<arm>.jsonl (gitignored)
+
+Read this to judge whether the prose is worth buying 5,528 of.
+
+
+========================================================================================
+inflation  |  arm: anon_cue
+========================================================================================
+
+--- meeting 1/3 — asof 2016-01-15 — statement read 2015-12-16
+    CALL DOWN  conviction 0.55  level 1.2375025026943876  (268 words)
+
+    The headline CPI trajectory presents a stark divergence between recent momentum and
+    the policy context. The most recent observation shows headline_cpi_yoy at 1.24%,
+    near the top of the 12-month range (12m high was 1.24%), having risen 1.11 pp over
+    the last three months. This is the acceleration phase the Fed was expecting to see
+    as transitory energy and import headwinds fade.  However, the monthly mechanics are
+    deteriorating sharply. The outgoing month-on-month print was +0.25% m/m, but the
+    3-month average is -0.01%, and the most recent three months show a pattern of
+    deceleration: 0.12%, -0.11%, -0.05% m/m. This suggests momentum is stalling after a
+    brief acceleration push. The headline_3m_annualized rate stands at -0.14%, which is
+    deflationary on an annualized basis and inconsistent with a move toward 2% over the
+    next month or two.  Core PCE, the Fed's target metric, sits at 1.19% y/y—well below
+    the 2% objective at -0.81 pp distance—and shows no meaningful drift upward. The
+    3-month core annualized is 0.83%, insufficient to close this gap quickly. The Fed's
+    language acknowledges inflation remains below target and credits transitory factors.
+    The data supports that transitory energy boost is now reflected in the headline
+    level, but month-to-month momentum is waning rather than building further.  For the
+    next monthly CPI release, I expect headline y/y to edge lower. The base effects from
+    the recent 1.24% level work against another leg higher, and the softening monthly
+    trend suggests incremental pressure rather than support. Core remains anchored well
+    below target, providing no lift.  This is a corrective call from my previous view,
+    which appears to have been too bullish on sustained headline acceleration.
+
+    key_evidence: headline_cpi_yoy, headline_mom, headline_3m_annualized, core_pce_yoy, headline_yoy_change_3m
+    falsifier:    Recent month-on-month headline prints accelerate back above +0.15% m/m, signaling renewed momentum into the next reading.
+    missing:      []
+    input_ranking (input, pull, weight):
+        headline_mom                     down     0.9
+        headline_3m_annualized           down     0.75
+        headline_mom_3m_avg              down     0.7
+        mom_gap_vs_outgoing              down     0.6
+        headline_yoy_change_3m           up       0.5
+        core_pce_yoy                     down     0.4
+        headline_cpi_yoy                 neutral  0.4
+        core_distance_from_target        down     0.25
+        core_3m_annualized               neutral  0.2
+        outgoing_mom                     up       0.2
+        core_minus_headline              neutral  0.15
+        headline_yoy_12m_high            neutral  0.1
+        headline_yoy_12m_low             neutral  0.1
+        yoy_range_position               neutral  0.1
+        yoy_12m_range_width              neutral  0.05
+        yoy_above_12m_low                neutral  0.05
+
+--- meeting 2/3 — asof 2016-02-15 — statement read 2016-01-27
+    CALL DOWN  conviction 0.68  level 0.8472775790126619  (277 words)
+
+    My previous call was **directionally right but miscalibrated on persistence**. I
+    forecast headline_cpi_yoy would decline, and it did—from 1.24% to 0.85%—a sharp 0.39
+    pp drop. However, I had pegged conviction at 0.55, which was too cautious. The
+    evidence was clearer than I weighted it.  What changed materially since that call?
+    The most recent three headline m/m prints are weak: –0.11%, –0.05%, –0.13%. The
+    outgoing m/m is now 0.27%, but the 3-month average is deeply negative at –0.10%, and
+    the gap between them is large (–0.36 pp). This signals recent deceleration in the
+    flow of price pressures relative to the reading that produced the outsized 1.24%
+    print two releases ago.  Core PCE has moved differently: it sits at 1.41%, up from
+    1.19% the previous release—a 0.23 pp jump and the highest reading in the 13-month
+    window. Core is rising while headline is falling, a divergence that reflects
+    transitory energy and import swings rather than persistent inflation mechanics. The
+    policy language explicitly flags that energy and import declines are temporary
+    drags, and that inflation is expected to rise toward 2% over the medium term as
+    these effects dissipate.  For the next month-ahead horizon, headline momentum is
+    negative in the 3-month lens (–1.14% annualized). My falsifier was acceleration back
+    above +0.15% m/m; instead, the last three prints averaged –0.10%. There is no sign
+    of that reacceleration. Headline should remain under pressure into the next release,
+    likely staying near or slightly above current levels but not meaningfully reversing
+    the decline.  Core PCE's uptick is note-worthy but does not override the headline
+    momentum signal for the immediate next release. Headline CPI is the scoring horizon
+    measurement, and its near-term trajectory remains down.
+
+    key_evidence: headline_cpi_yoy, headline_mom, headline_3m_annualized, headline_mom_3m_avg, outgoing_mom, mom_gap_vs_outgoing
+    falsifier:    Recent headline m/m prints accelerate back above +0.15%, reversing the current downtrend and signaling renewed momentum.
+    missing:      ['labor_tightness', 'financial_conditions']
+    input_ranking (input, pull, weight):
+        headline_mom_3m_avg              down     0.85
+        headline_3m_annualized           down     0.8
+        headline_cpi_yoy                 down     0.75
+        mom_gap_vs_outgoing              down     0.6
+        core_minus_headline              neutral  0.25
+        core_pce_yoy                     neutral  0.2
+        outgoing_mom                     up       0.15
+        core_yoy_change_3m               neutral  0.1
+        headline_yoy_12m_high            neutral  0.1
+        headline_yoy_change_3m           neutral  0.1
+        yoy_above_12m_low                neutral  0.05
+        core_distance_from_target        neutral  0.0
+        headline_yoy_12m_low             neutral  0.0
+        yoy_12m_range_width              neutral  0.0
+        yoy_range_position               neutral  0.0
+
+--- meeting 3/3 — asof 2016-03-15 — statement read 2016-01-27
+    CALL UP  conviction 0.62  level 0.8916160965521946  (266 words)
+
+    I was right to call down at the prior release, and the most recent headline CPI y/y
+    of 0.89% confirms that downward momentum is real—it fell sharply from the 1.24% peak
+    three observations back. However, I need to revise my conviction significantly
+    because the evidence has shifted in an inflationary direction over the very near
+    term.  The recent headline m/m print of +0.31% is exactly the acceleration above
+    +0.15% that I said would falsify my prior view. This is not a minor exceedance; it
+    is a material reacceleration after three months of subdued momentum
+    (headline_mom_3m_avg of +0.04%, with the prior three prints at -0.13%, -0.05%,
+    -0.11%). This single monthly print sits in the upper half of the 12-month range and
+    suggests the disinflationary trend may be stalling.  Core PCE has also accelerated
+    notably—to 1.47% from 1.20% just two periods prior, a +0.27 pp three-month y/y
+    shift, and now sits at +1.47%, well above its recent trough of 1.18%. The 3m
+    annualized core rate is +1.67%, substantially above headline's +0.54%, signaling
+    core persistence is reasserting.  The policy language, however, remains stale and
+    backward-looking. It speaks of inflation "below 2 percent" and declines in energy,
+    language more consistent with the 0.23% and 0.24% prints of four to five periods
+    ago, not the current 0.89% headline environment.  For the next monthly release, the
+    headline m/m acceleration I just witnessed will carry forward into the base effect
+    and momentum calculation. A single strong month can reverse a downtrend, especially
+    when core is accelerating in tandem. Headline y/y should move higher from 0.89%, not
+    lower.  My falsifier is no longer operative.
+
+    key_evidence: headline_mom, core_pce_yoy, headline_3m_annualized, core_3m_annualized, core_yoy_change_3m
+    falsifier:    Headline m/m falls back below +0.10%, reversing the recent +0.31% acceleration and re-establishing monthly disdisinflation.
+    missing:      ['financial_conditions', 'labor_tightness']
+    input_ranking (input, pull, weight):
+        headline_mom                     up       0.85
+        core_pce_yoy                     up       0.75
+        core_3m_annualized               up       0.7
+        core_yoy_change_3m               up       0.65
+        headline_yoy_change_3m           down     0.4
+        headline_3m_annualized           down     0.35
+        core_minus_headline              neutral  0.2
+        headline_mom_3m_avg              neutral  0.15
+        headline_yoy_12m_low             neutral  0.1
+        headline_yoy_12m_high            neutral  0.05
+        outgoing_mom                     neutral  0.05
+        mom_gap_vs_outgoing              neutral  0.0
+        yoy_12m_range_width              neutral  0.0
+        yoy_above_12m_low                neutral  0.0
+        yoy_range_position               neutral  0.0
+
+========================================================================================
+inflation  |  arm: plain
+========================================================================================
+
+--- meeting 1/3 — asof 2016-01-15 — statement read 2015-12-16
+    CALL DOWN  conviction 0.68  level 1.2375025026943876  (350 words)
+
+    Inflation momentum has shifted sharply in recent months, but the underlying picture
+    remains deeply disinflationary relative to the 2% target, particularly at the core.
+    The headline story is dominated by base effects and energy volatility. The most
+    recent headline CPI reading (1.24% y/y) is elevated on a 12-month comparison, but
+    this reflects a dramatic reversal from deeply negative readings a year ago (the
+    12-month low is -0.10%). The 3-month annualized momentum is slightly negative at
+    -0.14%, and the most recent month-over-month print of -0.05% suggests the headline
+    surge is losing steam. This is consistent with energy and import prices—two
+    acknowledged transitory headwinds a year ago—now rolling off the comparison base.
+    Core PCE remains far more telling, and it remains a significant concern. At 1.19%
+    y/y, core PCE sits 0.81 percentage points below the Committee's 2% target. The
+    3-month annualized rate of 0.83% is well below target and shows little momentum to
+    close that gap. Critically, the 3-month core yoy change is essentially flat (-0.04
+    pp), indicating no underlying acceleration despite favorable labor market conditions
+    mentioned in policy language.  The divergence between headline and core is narrow
+    but manageable (core is only 0.05 pp below headline). The policy language from
+    December 2015 acknowledges that inflation "continues to run below the Committee's 2
+    percent longer-run objective" and expects it to "rise to 2 percent over the medium
+    term" as transitory factors dissipate. That expectation does not appear to have
+    materialized in the recent data: core inflation has not accelerated, and headline
+    momentum is already reversing.  For the next monthly CPI release, the outlook is for
+    headline to decline or hold flat. The -0.05% mom print and negative 3-month
+    annualized rate suggest the prior month's headline surge has peaked. Energy and
+    import price relief created the recent y/y bump, but with that relief now baked into
+    year-ago comps, the next reading should revert toward a more disinflationary trend.
+    Conviction is moderate-to-high because the momentum evidence is clear, but it is
+    tempered by the inherent noise in monthly data and the fact that a single large
+    positive commodity shock could reverse the headline picture.
+
+    key_evidence: headline_cpi_yoy, headline_3m_annualized, headline_mom, core_pce_yoy, core_3m_annualized, core_distance_from_target
+    falsifier:    Large spike in energy or food prices; stronger than expected pass-through to core; core CPI accelerates month-over-month.
+    missing:      ['labor_tightness', 'financial_conditions']
+    input_ranking (input, pull, weight):
+        headline_3m_annualized           down     0.85
+        headline_mom                     down     0.8
+        headline_cpi_yoy                 neutral  0.4
+        core_pce_yoy                     down     0.35
+        core_3m_annualized               down     0.3
+        core_distance_from_target        down     0.25
+        headline_mom_3m_avg              down     0.15
+        mom_gap_vs_outgoing              down     0.15
+        headline_yoy_change_3m           up       0.1
+        core_minus_headline              neutral  0.05
+        core_yoy_change_3m               neutral  0.05
+        outgoing_mom                     up       0.05
+        yoy_above_12m_low                neutral  0.05
+        headline_yoy_12m_high            neutral  0.02
+        headline_yoy_12m_low             neutral  0.02
+        yoy_12m_range_width              neutral  0.02
+        yoy_range_position               neutral  0.02
+
+--- meeting 2/3 — asof 2016-02-15 — statement read 2016-01-27
+    CALL DOWN  conviction 0.5  level 0.8472775790126619  (296 words)
+
+    I was wrong. I called down with 0.68 conviction at the prior release; headline CPI
+    y/y rose from 0.64 to 1.24 (+0.60 pp), then to 0.85. The 1.24 print reversed my view
+    decisively. I must re-derive the call from current evidence.  The headline
+    trajectory is volatile but elevated. Current y/y stands at 0.85, well above the
+    12-month low of –0.10 and near the top of recent range. The 3-month annualized pace
+    is –1.14%, driven by the –0.13 m/m outgoing print, which is disinflationary. This
+    creates tension: y/y is high on a lagged basis; mom is rolling over. Core PCE y/y at
+    1.41 has risen +0.23 pp over three months and now sits only –0.59 pp below the Fed's
+    2% target, a meaningful tightening of the distance from target.  The headline mom
+    series shows recent weakness (–0.05, –0.13 last two), but the outgoing print was
+    +0.27, and the 3-month average sits at –0.10. This suggests momentum is moderating
+    but not collapsing. Energy and imported goods have been disinflationary; the Fed's
+    January 2016 statement cites energy declines explicitly and expects inflation to
+    remain low near-term before rising to 2% over medium term as transitory effects
+    dissipate.  For the next monthly CPI release (roughly one month ahead), the base
+    effect from the high 1.24 print will still be working; headline y/y should decline
+    modestly as that month rolls off the 12-month window. The outgoing monthly pace is
+    slightly inflationary (+0.27), but recent months' weakness suggests some moderation.
+    I expect a move toward 1.0 or lower, but not a sharp drop. Core PCE momentum (now
+    1.40 3m annualized) supports some underlying persistence, though the transitory
+    energy/import disdisinflation should weigh on headline.  The evidence suggests a
+    modest decline in headline y/y from 0.85, but with meaningful uncertainty around the
+    near-term path.
+
+    key_evidence: headline_cpi_yoy, headline_mom, core_pce_yoy, headline_3m_annualized, core_3m_annualized
+    falsifier:    Large energy rebound; another month of +0.25% or higher m/m in headline; core PCE continues to accelerate above 1.4% y/y.
+    missing:      ['financial_conditions', 'balance_sheet']
+    input_ranking (input, pull, weight):
+        headline_cpi_yoy                 down     0.85
+        headline_3m_annualized           down     0.65
+        core_pce_yoy                     up       0.5
+        core_3m_annualized               up       0.45
+        headline_mom                     neutral  0.35
+        outgoing_mom                     up       0.3
+        core_distance_from_target        up       0.25
+        headline_mom_3m_avg              down     0.25
+        headline_yoy_change_3m           neutral  0.2
+        mom_gap_vs_outgoing              down     0.2
+        core_minus_headline              neutral  0.15
+        headline_yoy_12m_high            neutral  0.1
+        headline_yoy_12m_low             neutral  0.1
+        yoy_12m_range_width              neutral  0.05
+        yoy_above_12m_low                neutral  0.05
+        yoy_range_position               neutral  0.05
+
+--- meeting 3/3 — asof 2016-03-15 — statement read 2016-01-27
+    CALL UP  conviction 0.65  level 0.8916160965521946  (306 words)
+
+    I called down with 0.50 conviction at the previous release. That call was scored
+    against the most recent headline CPI of 0.89% y/y. I was wrong. Headline inflation
+    did not fall as I expected; instead it stabilized at a level that had already begun
+    a sharp acceleration from the lows of -0.10% six months prior.  The evidence now
+    shows sustained momentum in inflation that contradicts my prior framing. Over the
+    most recent three months, headline inflation has annualized at +0.54%, driven by a
+    recent month-on-month reading of +0.31% — materially above the historical average
+    and consistent with the acceleration pattern I should have weighted more heavily.
+    More striking: core PCE has moved to 1.47% y/y, precisely at one of my stated
+    falsifiers ("core PCE continues to accelerate above 1.4% y/y"), and the three-month
+    core annualized rate sits at +1.67%, well above the 2% target run rate.  The policy
+    language from January 2016 frames inflation as "below the Committee's 2 percent" and
+    expects it to "rise to 2 percent over the medium term" — a description that fit the
+    moment but has been overtaken. The core inflation momentum is no longer a slow drift
+    upward; it is active acceleration, with core year-over-year change up +0.27 pp over
+    three months and core distance from target narrowing to only -0.53 pp.  The monthly
+    momentum is the key tell. The headline month-on-month of +0.31% is the strongest in
+    the recent window and reverses the softness seen in prior months. Combined with
+    core's persistent elevation and acceleration, the near-term path points upward.
+    Energy has not rebounded sharply enough to dominate, and the breadth of the
+    acceleration — visible in both headline and core — suggests this is not transitory
+    noise.  I misread the persistence of the uptrend. The next CPI release should show
+    inflation holding or moving slightly higher from here.
+
+    key_evidence: headline_cpi_yoy, core_pce_yoy, headline_mom, headline_3m_annualized, core_3m_annualized, core_yoy_change_3m
+    falsifier:    Large deflation in headline m/m; core PCE falls back below 1.35%; three-month annualized momentum turns negative.
+    missing:      ['curve_slope', 'inflation_expectations']
+    input_ranking (input, pull, weight):
+        core_3m_annualized               up       0.95
+        core_pce_yoy                     up       0.9
+        headline_mom                     up       0.85
+        core_yoy_change_3m               up       0.8
+        headline_3m_annualized           up       0.75
+        headline_cpi_yoy                 up       0.7
+        headline_mom_3m_avg              neutral  0.2
+        core_minus_headline              neutral  0.15
+        core_distance_from_target        neutral  0.1
+        headline_yoy_12m_low             neutral  0.05
+        outgoing_mom                     neutral  0.05
+        mom_gap_vs_outgoing              neutral  0.0
+        yoy_12m_range_width              neutral  0.0
+        yoy_above_12m_low                neutral  0.0
+
+========================================================================================
+risk_appetite  |  arm: anon_cue
+========================================================================================
+
+--- meeting 1/3 — asof 2016-01-31 — statement read 2016-01-27
+    CALL DOWN  conviction 0.68  level 114.72  (241 words)
+
+    Cross-asset risk appetite has deteriorated materially over the measurement window.
+    The curve_slope_bp shows a persistent and substantial decline from 143.93 to 114.72
+    basis points—a 29 bp drop—representing a significant flattening of the 2-10y spread.
+    This flattening is the anti-growth signal within my mandate and is the dominant
+    driver of a weaker appetite view.  The copper/gold ratio has compressed
+    consistently, showing eight consecutive observations of negative change, most
+    recently at -0.03. This ratio decline reflects a move into safe-haven gold relative
+    to cyclical copper, another clear deterioration signal for growth confidence and
+    risk premia appetite.  The dollar, conversely, has been resilient and even
+    strengthened in the most recent observation (0.01), though the eight-week trend
+    shows attenuation from +0.04 to near zero. A stronger dollar typically reflects
+    demand for safety, not appetite expansion, though the recent stabilization prevents
+    this from confirming further deterioration.  The policy language describes a
+    moderately accommodative stance with expectations for moderate economic expansion
+    and gradual rate adjustments. However, the Committee notes it is "closely monitoring
+    global economic and financial developments"—language that signals caution about
+    external risks, consistent with the deteriorating appetite signals in the cross-
+    asset data.  My previous view called for flat risk appetite, which underestimated
+    the downtrend. The curve slope has continued to compress, and the copper/gold
+    weakness has persisted. The evidence now supports a directional deterioration call
+    with moderate-to-clear conviction. The one-month forward view should reflect
+    continued pressure on growth expectations absent material reversal in these metrics.
+
+    key_evidence: curve_slope_bp, copper_gold_change_8w, dollar_change_8w
+    falsifier:    Curve slope re-steepens to 125+ bp; copper/gold ratio turns positive; dollar weakens materially on risk recovery.
+    missing:      ['financial_conditions', 'positioning']
+    input_ranking (input, pull, weight):
+        curve_slope_bp                   down     0.85
+        copper_gold_change_8w            down     0.75
+        dollar_change_8w                 down     0.4
+
+--- meeting 2/3 — asof 2016-02-29 — statement read 2016-01-27
+    CALL DOWN  conviction 0.72  level 96.89  (227 words)
+
+    My prior call was down with 0.68 conviction, premised on curve flattening,
+    deteriorating copper/gold, and dollar drift. I said I would flip if curve re-
+    steepened to 125+bp, copper/gold turned positive, or dollar weakened materially.
+    The most recent data show curve_slope_bp at 96.89bp—further flattening, not the re-
+    steepening I said would falsify the view. Copper/gold has deteriorated sharply to
+    -0.14, not improved. The dollar at -0.01 8w change shows only marginal recent
+    weakness, nowhere near "material" recovery strength. None of my falsifiers have
+    triggered.  All three headline measurements now point more sharply in the direction
+    I called: - Curve slope: 96.89bp vs. 100.31bp prior week, continuing a steep descent
+    from 133bp thirteen observations ago. - Copper/gold: -0.14 vs. -0.11 prior week,
+    having darkened from -0.03 nine observations back. - Dollar: -0.01 is flat drift; no
+    material weakness evident.  The policy language is steady but backward-
+    looking—acknowledging labor improvement and monitoring global risks without
+    signaling policy shift. This passivity, combined with accelerating curve flattening
+    and deteriorating industrial-to-safe-haven metal flow, reinforces the prior signal
+    that cross-asset risk appetite is contracting.  The curve flattening is particularly
+    diagnostic: 36bp of slope loss over thirteen weeks reflects declining confidence in
+    medium-term growth and falling real rate expectations that do not support risk-on
+    positioning. The copper/gold deterioration confirms it—risk appetite is weakening,
+    not stabilizing.  I was right on direction. The evidence has strengthened rather
+    than reversed.
+
+    key_evidence: curve_slope_bp, copper_gold_change_8w, dollar_change_8w
+    falsifier:    Curve slope re-steepens above 110bp; copper/gold turns positive; dollar weakness accelerates above -0.03.
+    missing:      []
+    input_ranking (input, pull, weight):
+        curve_slope_bp                   down     0.5
+        copper_gold_change_8w            down     0.35
+        dollar_change_8w                 neutral  0.0
+
+--- meeting 3/3 — asof 2016-03-31 — statement read 2016-03-16
+    CALL FLAT  conviction 0.35  level 103.11  (250 words)
+
+    My prior view called risk appetite DOWN with conviction 0.72, predicting further
+    deterioration in curve_slope_bp. The falsifiers I set were: curve re-steepening
+    above 110bp, copper/gold turning positive, or dollar weakness exceeding -0.03.  The
+    most recent curve_slope_bp reading is 103.11bp—well below my 110bp re-steepening
+    threshold, having fallen sharply from 122.17bp over the 13-week window. Against this
+    backdrop, the most recent copper/gold_change_8w is -0.02 (still negative, though
+    stabilizing from the -0.17 trough), and dollar_change_8w is -0.03 (flattening, not
+    accelerating further weakness). None of my stated falsifiers have been triggered.
+    However, the recent trajectory matters more than individual readings. Over the last
+    three observations, copper/gold has steadied at -0.02, -0.01, -0.02 after a brutal
+    deterioration to -0.17. The curve has stabilized around 101–104bp after its slide
+    from 122bp, and the dollar has plateaued at -0.03 rather than accelerating lower.
+    This suggests stabilization in risk appetite rather than fresh deterioration.  The
+    policy language remains unchanged—accommodative stance, moderate growth
+    expectations, transitory inflation effects. There is no signal of imminent
+    tightening or policy reversal that would steepen the curve, nor any fresh
+    geopolitical or financial shock visible in the data to inflict further damage.  The
+    evidence no longer supports a DOWN call with high conviction. The curve,
+    copper/gold, and dollar have stopped deteriorating in tandem. While they remain at
+    weak levels, the momentum has flatlined. Cross-asset risk appetite appears to be
+    finding a floor rather than breaking lower. Given the prior miss and the
+    stabilization pattern, I am downgrading my conviction materially and shifting to
+    FLAT.
+
+    key_evidence: curve_slope_bp, copper_gold_change_8w, dollar_change_8w
+    falsifier:    Curve steepens past 110bp, or copper/gold turns firmly positive (+0.03+), or dollar falls below -0.05.
+    missing:      ['financial_conditions', 'positioning']
+    input_ranking (input, pull, weight):
+        curve_slope_bp                   down     0.5
+        copper_gold_change_8w            down     0.3
+        dollar_change_8w                 down     0.2
+
+========================================================================================
+risk_appetite  |  arm: plain
+========================================================================================
+
+--- meeting 1/3 — asof 2016-01-31 — statement read 2016-01-27
+    CALL DOWN  conviction 0.68  level 114.72  (229 words)
+
+    Risk appetite is deteriorating. The curve slope has compressed 29 bp over the
+    13-week observation window, from 143.93 to 114.72, and the three most recent
+    observations (118.47, 118.28, 114.72) show a renewed downtrend after a brief
+    stabilization. The copper/gold ratio has weakened substantially, posting negative
+    8-week changes in all 13 observations, with recent prints of -0.08, -0.07, -0.06,
+    -0.03 signaling persistent loss of growth confidence. The dollar has remained
+    largely flat to modestly positive (0.01 most recently), offering no offsetting
+    support to risk sentiment.  The Fed's January 2016 statement provides context: while
+    acknowledging labor improvement and calling policy "accommodative," the Committee is
+    holding rates steady and citing concerns about "global economic and financial
+    developments." This cautious posture, combined with weak inflation readings and
+    declining market-based inflation compensation, creates an environment of subdued
+    growth expectations. The Fed's explicit note that it will maintain "accommodative"
+    policy and reinvest holdings to support conditions suggests policymakers are aware
+    of fragility, not confidence.  The three-month trend of deteriorating curve slope
+    against a consistent copper/gold weakness pattern indicates that market participants
+    are pricing lower growth probability and higher risk premiums. The dollar's near-
+    flatness removes any near-term counterargument from safe-haven flows.  Previous call
+    was for slope to flatten further; the data has confirmed that directionally, and the
+    momentum remains down. Conviction is tempered only by the possibility that the Fed's
+    explicit dovishness could arrest further repricing.
+
+    key_evidence: curve_slope_bp, copper_gold_change_8w
+    falsifier:    Sudden copper/gold ratio stabilization or rebound; Fed pivot signaling more rate cuts than currently priced; dollar weakness as portfolio hedge.
+    missing:      ['financial_conditions', 'positioning']
+    input_ranking (input, pull, weight):
+        curve_slope_bp                   down     0.75
+        copper_gold_change_8w            down     0.65
+        dollar_change_8w                 neutral  0.1
+
+--- meeting 2/3 — asof 2016-02-29 — statement read 2016-01-27
+    CALL DOWN  conviction 0.72  level 96.89  (257 words)
+
+    My prior view called for deteriorating risk appetite (curve_slope_bp DOWN) at 0.68
+    conviction. That call proved correct. The curve has compressed 36 basis points from
+    133.05 to 96.89 over the 13-week span, with particularly sharp moves in the most
+    recent weeks (114.72 → 111.36 → 103.44 → 100.31 → 96.89). The copper/gold ratio has
+    remained persistently weak, deepening from -0.08 to -0.14 in the latest two periods.
+    The dollar, after stabilizing near zero, ticked down slightly to -0.01 and -0.03 in
+    recent weeks, but has not reversed meaningfully.  The FOMC statement dated January
+    27, 2016 describes a Fed holding rates steady and maintaining accommodation amid
+    slowing growth, soft exports, and inflation below target. Global economic concerns
+    are explicitly flagged as requiring close monitoring. This backdrop—weak growth,
+    global uncertainties, below-target inflation, and policy accommodation without
+    urgency—is precisely the environment in which risk appetite deteriorates further.
+    The curve continues to flatten because long-term growth expectations are weakening,
+    not because the Fed is tightening.  The copper/gold ratio's recent contraction to
+    -0.14 (two periods running) signals deepening risk-off positioning in hard assets.
+    This is not stabilizing; it is deteriorating. For me to reverse course, I would need
+    to see either a rebound in the copper/gold ratio back above -0.08, a sharp dollar
+    depreciation, or Fed language signaling additional rate cuts beyond what markets
+    have priced. None of that is evident.  The curve-slope downtrend is clear and the
+    proximal drivers (growth concerns, risk-off metals, stable/slightly weak dollar) all
+    reinforce further compression. Risk appetite remains on the deteriorate path over
+    the coming month.
+
+    key_evidence: curve_slope_bp, copper_gold_change_8w, dollar_change_8w
+    falsifier:    Sudden copper/gold ratio stabilization above -0.08; Fed signals additional rate cuts; dollar weakness rally reverses curve compression trend.
+    missing:      ['financial_conditions', 'positioning']
+    input_ranking (input, pull, weight):
+        curve_slope_bp                   down     0.95
+        copper_gold_change_8w            down     0.75
+        dollar_change_8w                 neutral  0.1
+
+--- meeting 3/3 — asof 2016-03-31 — statement read 2016-03-16
+    CALL FLAT  conviction 0.35  level 103.11  (293 words)
+
+    My prior view called curve_slope_bp down with conviction 0.72, predicting continued
+    compression. The trigger for change was copper/gold stabilization, Fed cut signals,
+    or dollar-weakness reversal. Let me assess the new evidence.  The curve has
+    compressed further: from 103.11 bp to what should be the recent close in that
+    series, confirming the down call was directionally correct. However, the most recent
+    observation shows stabilization—copper/gold at -0.02 (from -0.02 prior), marking the
+    flattest reading in the entire 13-week window and a dramatic improvement from the
+    -0.17 trough 5 weeks ago. The dollar has also stabilized, moving from -0.05 to
+    -0.03, suggesting the sharp 8-week weakness is no longer accelerating. These are not
+    reversals yet, but they are stabilizations that match my stated falsifiers.  The
+    Fed's March 2016 language remains dovish—it maintains rates at 1/4–1/2%,
+    acknowledges global headwinds, underscores accommodative policy, and signals only
+    "gradual" rate increases. This is consistent with the environment that compressed
+    the curve; nothing here has shifted to hawkish. But the stabilization in copper/gold
+    and dollar weakness, combined with the Fed's patient stance, suggests the worst of
+    the risk-appetite deterioration may have priced in. The curve at ~103 bp is
+    materially lower than 122 bp eight weeks ago, but the trajectory of deterioration
+    appears to be decelerating.  Over a one-month horizon, I expect the curve to hold in
+    the 100–105 bp range rather than compress further or steepen sharply. Risk appetite
+    remains fragile—copper/gold is merely stable, not improving—but the negative
+    momentum is breaking. A further modest steepening is possible if growth optimism re-
+    emerges, but confidence is not high given the Fed's cautious tone and the global
+    risks it cites.  I am revising to flat with modest conviction, reflecting
+    stabilization in the near-term risk signals but insufficient evidence yet for a
+    meaningful reversal.
+
+    key_evidence: copper_gold_change_8w, curve_slope_bp, dollar_change_8w
+    falsifier:    Copper/gold resumes decline below -0.05; curve compresses below 98 bp; dollar weakness accelerates past -0.07 in 8w change.
+    missing:      ['positioning', 'vol_regime']
+    input_ranking (input, pull, weight):
+        copper_gold_change_8w            up       0.45
+        curve_slope_bp                   down     0.4
+        dollar_change_8w                 up       0.25
+
+========================================================================================
+positioning  |  arm: anon_cue
+========================================================================================
+
+--- meeting 1/3 — asof 2016-01-31 — statement read 2016-01-27
+    CALL UP  conviction 0.5  level -1.7783736159700074  (278 words)
+
+    Asset managers have built and maintained deeply short positioning, while leveraged
+    funds have pivoted sharply from elevated longs to near-neutral. The most recent
+    readings show asset_mgr_z at -1.78 (near the two-week trough at -1.80), marking one
+    of the deepest shorts of this 13-week window. Meanwhile, lev_fund_z has collapsed
+    from +0.92 to -0.33, a 1.25 std dev drop in a single period — the largest single-
+    week reversal in the dataset.   The 4-week momentum tells a critical story. Asset-
+    manager change sits at -0.74, indicating continued incremental short-building,
+    though this is moderating from the worst of the drawdown. Leveraged-fund momentum
+    has swung decisively negative at -1.28, the most negative reading in 13 weeks,
+    reflecting a sudden and aggressive unwind of their recent long positioning. This
+    disparity matters: asset managers are near structural lows while leveraged funds are
+    in rapid retreat from overextension.  Over the coming month, mean reversion pressure
+    on leveraged funds appears material — funds have whipsawed from +1.19 to -0.33, and
+    such violent reversals often overshoot before stabilizing. Asset managers, by
+    contrast, are persistently deep short and showing no sign of conviction reversal yet
+    (4-week change still negative). However, the extreme differential positioning —
+    asset managers deeply short while leveraged funds have just flushed their longs —
+    creates asymmetric positioning that could support a modest rebound in asset_mgr_z as
+    the forced unwind in leveraged funds completes.  I expect a modest unwind
+    (improvement) in asset manager shorts over the month ahead, but not a full reversal.
+    Previous view called for shorts to intensify; the rapid leveraged-fund reversal
+    suggests that dynamic has altered. Conviction is moderate as the timing of mean
+    reversion is uncertain and asset-manager commitment to shorts remains structural.
+
+    key_evidence: asset_mgr_z, asset_mgr_change_4w, lev_fund_z, lev_fund_change_4w
+    falsifier:    Asset managers resume short-building despite leveraged-fund unwind; lev_fund_z stabilizes above 0 without triggering asset-manager covering.
+    missing:      []
+    input_ranking (input, pull, weight):
+        lev_fund_change_4w               up       0.75
+        lev_fund_z                       up       0.65
+        asset_mgr_change_4w              down     0.45
+        asset_mgr_z                      neutral  0.3
+
+--- meeting 2/3 — asof 2016-02-29 — statement read 2016-01-27
+    CALL UP  conviction 0.55  level -1.4342047901225743  (254 words)
+
+    Asset managers remain heavily net short across the positioning z-score, holding at
+    -1.43 (most recent), though this represents a modest recovery from -1.52 one
+    observation ago. The 4-week change metric shows a marginal improvement to 0.07 from
+    0.03, the smallest deterioration reading in the 13-observation window, suggesting
+    the unwinding pace has slowed materially. This is the critical observation: the
+    unwinding is not accelerating; momentum toward covering is weakening but visible.
+    Leveraged funds, by contrast, have stabilized near zero at -0.05, up from -0.61.
+    Their 4-week change has swung positive at 0.18—the first positive reading in the
+    sequence—indicating they have resumed net buying after a deep unwind cycle. This is
+    the key test I flagged in my previous view. The paired behavior matters: lev funds
+    are stabilizing without strong asset-manager covering yet, which supports continued
+    slow covering pressure from asset managers over the next month.  Asset managers
+    remain in the second-lowest decile of their trailing-year distribution, a crowded
+    short that typically precedes mean reversion, albeit from an extreme that can
+    persist. The 4-week change has decelerated to near-zero, suggesting the period of
+    sharp short-building has ended. Given lev fund stabilization and the dramatic
+    deceleration in asset-manager unwinding momentum, I expect a gradual resumption of
+    covering over the next month, moving asset_mgr_z modestly higher.  My previous call
+    of 'up' was correct directionally, but I underestimated both the persistence of the
+    short and the lag in actual covering behavior. The evidence now supports the same
+    direction with slightly higher confidence, as the stabilization inflection is
+    becoming clearer.
+
+    key_evidence: asset_mgr_z, asset_mgr_change_4w, lev_fund_z, lev_fund_change_4w
+    falsifier:    Asset managers resume short-building or lev_fund_z drops below -0.5 without asset-manager covering acceleration.
+    missing:      []
+    input_ranking (input, pull, weight):
+        asset_mgr_change_4w              up       0.4
+        lev_fund_change_4w               up       0.35
+        asset_mgr_z                      up       0.2
+        lev_fund_z                       up       0.05
+
+--- meeting 3/3 — asof 2016-03-31 — statement read 2016-03-16
+    CALL FLAT  conviction 0.35  level -1.2928666567357927  (259 words)
+
+    I called this driver up with 0.55 conviction at the previous release, expecting
+    asset managers to build net longs over the month ahead. The evidence at the last
+    close does not support that call, and I need to revise.  Asset managers remain
+    deeply short across the most recent observation at -1.29 std devs from trailing
+    year, mirroring where they were over the prior month. More importantly, the 4-week
+    change in asset_mgr_z has stopped improving: it stands at -0.05 (flat, essentially
+    zero net movement in recent weeks), after showing tentative upward momentum of 0.40
+    at its recent peak. This is a critical miss versus my prior expectation. The
+    unwinding that had begun—moving from -1.80 toward -1.16—has stalled and reversed
+    slightly.  Leveraged funds are nearly centered at 0.19 std devs, which is not
+    crowded, but their 4-week change is also flat at 0.19, providing no fresh
+    directional signal. They offer neither support for covering nor evidence of renewed
+    shorts.  The falsifier I identified—"asset managers resume short-building or
+    lev_fund_z drops below -0.5"—has not triggered, so I should not swing to a down
+    call. But neither has the covering acceleration I needed to sustain an up call
+    materialized. The stalling of the 4-week change after a brief rally is the clearest
+    evidence that momentum has broken.  Asset managers remain anchored in deep short
+    territory. Without fresh buy signals in the 4-week momentum or a decisive shift in
+    leveraged-fund positioning, the most honest read is flat: positioning is stable but
+    unproven to be unwinding further. I was premature in my conviction on the upside.
+
+    key_evidence: asset_mgr_z, asset_mgr_change_4w
+    falsifier:    Asset managers build net shorts materially, or 4-week change turns decisively negative again.
+    missing:      []
+    input_ranking (input, pull, weight):
+        asset_mgr_change_4w              down     0.75
+        asset_mgr_z                      neutral  0.45
+        lev_fund_change_4w               neutral  0.1
+        lev_fund_z                       neutral  0.05
+
+========================================================================================
+positioning  |  arm: plain
+========================================================================================
+
+--- meeting 1/3 — asof 2016-01-31 — statement read 2016-01-27
+    CALL UP  conviction 0.35  level -1.7783736159700074  (278 words)
+
+    Asset managers are positioned at a record short—the latest asset_mgr_z of -1.78 is
+    the lowest in this 13-week series. The prior view called for positioning to continue
+    unwinding (further shorts adding), and that proved correct: asset_mgr_z moved from
+    -1.44 to -1.78. However, the momentum signal has reversed sharply. The 4-week change
+    in asset manager positioning (asset_mgr_change_4w) has swung from -0.59 to -0.74,
+    staying negative but stabilizing in the -0.65 to -0.74 band over the last four
+    weeks—no longer accelerating. This suggests the unwind phase is plateauing after
+    weeks of steady deterioration.  Leveraged funds present a more complex picture.
+    After building a crowded long (lev_fund_z rose to +0.92 at the prior reading), they
+    have now collapsed to -0.33—a reversal of 1.25 std devs in a single week. Their
+    4-week change sank from -0.48 to -1.28, the most extreme negative reading in the
+    series. This violent unwinding is a mean-reversion signal: leveraged funds vacated
+    long exposure, which could free up some room for asset managers to position
+    differently.  The Fed's January 27, 2016 statement kept rates on hold but maintained
+    the "gradual increases" language and emphasized close monitoring of global
+    developments. This accommodative but cautious stance does not mandate a shift in the
+    direction of asset manager positioning in the next month.  The critical tension:
+    asset managers are at record shorts but momentum is flattening, while leveraged
+    funds just crashed out of crowded longs. The one-month horizon captures whether
+    shorts stabilize (probability rising) or accelerate further (now less likely). Given
+    the lack of fresh Fed hawkishness and the leveraged-fund liquidation, asset managers
+    are more likely to hold or begin a modest unwind of their short than to deepen
+    shorts further.
+
+    key_evidence: asset_mgr_z, asset_mgr_change_4w, lev_fund_z, lev_fund_change_4w
+    falsifier:    Asset managers sustain or accelerate shorts as global equity volatility spikes or Fed signals re-acceleration in rate increases.
+    missing:      ['financial_conditions', 'risk_appetite']
+    input_ranking (input, pull, weight):
+        asset_mgr_change_4w              up       0.5
+        asset_mgr_z                      down     0.35
+        lev_fund_change_4w               up       0.3
+        lev_fund_z                       neutral  0.05
+
+--- meeting 2/3 — asof 2016-02-29 — statement read 2016-01-27
+    CALL FLAT  conviction 0.25  level -1.4342047901225743  (284 words)
+
+    My previous call was for positioning to move up (asset managers adding net longs)
+    with 0.35 conviction. The most recent data shows asset_mgr_z at -1.43, which is a
+    modest improvement from -1.52 the prior period, confirming that directional call was
+    correct. However, the magnitude of change is marginal and the level remains deeply
+    negative.  The current positioning picture is decidedly mixed. Asset managers remain
+    in a 13-week trough: -1.43 std devs is the worst or second-worst in this series. The
+    4-week change shows a near-flat +0.07, suggesting they have stabilized their short
+    position rather than aggressively unwinding it. Leveraged funds, by contrast, have
+    swung positive: lev_fund_z is -0.05 (nearly zero) and lev_fund_change_4w is +0.18,
+    indicating they are re-entering longs.  This divergence matters. Asset managers
+    remain cautious—their extreme shortness reflects genuine crowding on the bearish
+    side. Leveraged funds, however, are the marginal buyers. The FOMC statement is from
+    late January 2016, a period of acute volatility and repricing lower in growth
+    expectations. The Fed's emphasis on monitoring "global economic and financial
+    developments" and "gradual increases" in rates provided little conviction to mean-
+    revert asset-manager shorts.  Over the one-month horizon, the evidence for renewed
+    asset-manager long-building is weak. Yes, they stopped bleeding shorts. But a +0.07
+    4-week change is noise within their structural short. Leveraged funds' buying
+    (likely systematic or tactical) could provide near-term support, but asset managers'
+    behavior suggests they remain unconvinced by the equity risk setup. Mean reversion
+    from -1.43 would normally be expected, but the policy backdrop and the lack of
+    conviction in their recent 4-week move argue for a shallow rebound at best.  I
+    revise to flat with low conviction, acknowledging my prior directional call was too
+    bullish on the pace of unwinding.
+
+    key_evidence: asset_mgr_z, asset_mgr_change_4w, lev_fund_change_4w
+    falsifier:    Asset managers accelerate long-building (4w change >+0.3) or sustained short-covering as volatility falls and Fed guidance softens further.
+    missing:      ['risk_appetite', 'financial_conditions']
+    input_ranking (input, pull, weight):
+        asset_mgr_z                      down     0.4
+        asset_mgr_change_4w              neutral  0.3
+        lev_fund_change_4w               up       0.2
+        lev_fund_z                       neutral  0.1
+
+--- meeting 3/3 — asof 2016-03-31 — statement read 2016-03-16
+    CALL UP  conviction 0.35  level -1.2928666567357927  (274 words)
+
+    Asset managers remain in a deeply short position (asset_mgr_z = -1.29 std devs), and
+    the recent four-week change signal has inverted. My previous call was flat with low
+    conviction, predicated on needing to see either acceleration in long-building (4w
+    change >+0.3) or sustained short-covering. The latest data shows asset_mgr_change_4w
+    at -0.05 std devs, a deterioration from +0.07 two weeks prior, signaling renewed
+    short accumulation rather than covering. This reversal undermines the basis for
+    expecting position unwinding.  Leveraged funds offer no offset: lev_fund_z at 0.19
+    std devs is near neutral and lev_fund_change_4w at 0.19 reflects minimal directional
+    momentum. The Federal Reserve's March 16, 2016 statement maintains an accommodative
+    stance with "gradual" rate increases and inflation still below target—conditions
+    that typically favor risk-on positioning, yet asset managers are doubling down on
+    shorts.  The disconnect is striking. Policy language remains dovish, yet the
+    positioning data shows asset managers have returned to net short accumulation after
+    a brief flicker of covering. This suggests either (1) deteriorating macro
+    expectations not yet visible in the Fed's statement, or (2) technical mean-reversion
+    selling as extreme shorts attract selling pressure.  Over the next month, I expect
+    asset_mgr_z to remain deeply negative but edge slightly higher—a reversion from the
+    renewed short-building evident in the latest 4w change. Extreme shorts rarely extend
+    indefinitely; the -1.29 level combined with reversed accumulation momentum should
+    provoke modest covering. However, the signal is weak: absent a catalyst like a sharp
+    equity rally or policy pivot, this is stabilization rather than conviction short-
+    unwinding.  I was wrong to call flat. The resumed short accumulation (negative 4w
+    change) is a directional signal, albeit a weak one pointing to modest reversion
+    upward.
+
+    key_evidence: asset_mgr_z, asset_mgr_change_4w
+    falsifier:    Asset managers extend shorts further (4w change remains negative and asset_mgr_z drops below -1.40).
+    missing:      ['risk_appetite', 'financial_conditions']
+    input_ranking (input, pull, weight):
+        asset_mgr_z                      down     0.6
+        asset_mgr_change_4w              up       0.5
+        lev_fund_z                       neutral  0.1
+        lev_fund_change_4w               neutral  0.05
