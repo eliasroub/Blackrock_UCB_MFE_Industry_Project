@@ -78,6 +78,17 @@ def load_run(path: str) -> Run:
         "key_evidence": [list(v.key_evidence) for v in views],
         "falsifier": [v.falsifier for v in views],
         "missing_inputs": [[m.driver for m in v.missing_inputs] for v in views],
+        # The complete attribution, carried as (input, pull, weight) triples. Kept
+        # structured rather than flattened because the two analyses it feeds need
+        # different projections: mean weight x pull per input over time, and
+        # whether the top-ranked input's pull agrees with the stated direction.
+        # Empty on every run file written before the field existed.
+        "input_ranking": [[(w.input, w.pull, w.weight) for w in v.input_ranking]
+                          for v in views],
+        # Which statement was read, for the preregistered recall-stratified split.
+        # Only in files written after the field was added; None elsewhere, and
+        # recomputable from the corpus as-of rule either way.
+        "statement_release_date": [r.get("statement_release_date") for r in recs],
     }, index=idx).sort_index()
 
     keep = ~df["degraded"]

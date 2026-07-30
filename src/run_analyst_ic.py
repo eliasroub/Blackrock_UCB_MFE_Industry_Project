@@ -18,10 +18,14 @@ Views are written incrementally so a mid-run failure loses nothing.
 from __future__ import annotations
 
 import argparse
+import bisect
+import datetime as dt
 import json
 import os
+import subprocess
 import sys
 import time
+import uuid
 
 import numpy as np
 import pandas as pd
@@ -37,6 +41,41 @@ from src.layered.analysts import (
 from src.layered.evaluation import ICEvaluator, release_dates, required_ic
 from src.layered.perturb import ANALYST_NAMES, analyst_perturbation
 from src.layered.timeline import AsOf
+
+
+def _git_sha() -> str:
+    """The commit the run was launched from, or "" outside a work tree.
+
+    Recorded because meta.config names every flag but nothing about the code that
+    read them, so two repeats of one arm across a code change were previously
+    indistinguishable. Matters more, not less, under a design that repeats runs.
+    """
+    try:
+        out = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True,
+                             text=True, timeout=5, cwd=os.path.dirname(__file__) or ".")
+        return out.stdout.strip() if out.returncode == 0 else ""
+    except Exception:  # noqa: BLE001 — provenance is best-effort, never fatal
+        return ""
+
+
+def _statement_release_dates(analyst) -> list:
+    """The corpus release dates behind this analyst's text channel, ascending.
+
+    Logged per record so a result can be stratified by WHICH statement was read
+    without re-deriving it from asof. results/recall_probe/strata.csv is keyed
+    that way, and the recall-stratified analysis is preregistered against it.
+    """
+    sel = getattr(analyst, "text_selector", None)
+    corpus = getattr(sel, "corpus", None)
+    return list(getattr(corpus, "_release_dates", []) or [])
+
+
+def _statement_asof(release_dates: list, asof) -> str | None:
+    """The latest release at or before ``asof`` — the corpus's own as-of rule."""
+    if not release_dates:
+        return None
+    i = bisect.bisect_right(release_dates, asof) - 1
+    return str(release_dates[i].date()) if i >= 0 else None
 
 
 def main():
@@ -98,6 +137,13 @@ def main():
 
     os.makedirs(os.path.dirname(args.out) or ".", exist_ok=True)
 
+    # Two repeats of one arm were previously distinguishable only by filename,
+    # which is not enough under a design that deliberately re-runs an arm to
+    # measure its own sampling noise.
+    run_id = uuid.uuid4().hex[:12]
+    started_utc = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
+    stmt_dates = _statement_release_dates(analyst)
+
     # The system prompt is constant across the run, so it is written once here
     # alongside the config and the resolved feature spec, rather than repeated on
     # every record. Together with the per-meeting user prompts this is a complete
@@ -105,6 +151,9 @@ def main():
     meta_path = os.path.splitext(args.out)[0] + ".meta.json"
     with open(meta_path, "w") as fh:
         json.dump({
+            "run_id": run_id,
+            "started_utc": started_utc,
+            "git_sha": _git_sha(),
             "config": vars(args),
             "driver": analyst.driver,
             "inputs": list(analyst.inputs),
@@ -138,6 +187,7 @@ def main():
 
             fh.write(json.dumps({
                 "asof": str(asof.date()),
+                "statement_release_date": _statement_asof(stmt_dates, asof),
                 "carried": v.carried,
                 "user_prompt": analyst._user_prompt(features, text, memory_shown),
                 "features": {
