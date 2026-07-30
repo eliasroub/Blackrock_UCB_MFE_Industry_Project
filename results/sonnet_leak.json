@@ -1,0 +1,4 @@
+driver,n,statements,dIC,lo,hi,ci_excludes_0,meets_threshold,haiku_dIC
+curve_slope,125,83,-0.0252,-0.1113,0.0639,False,False,-0.028
+inflation,123,82,-0.0494,-0.1146,0.0168,False,False,-0.062
+balance_sheet,125,83,-0.0071,-0.0566,0.0408,False,False,0.036

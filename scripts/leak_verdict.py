@@ -73,6 +73,28 @@ def dic_ci(j: pd.DataFrame, n_boot: int = 4000, seed: int = 0) -> tuple[float, f
     return point, float(np.percentile(boots, 2.5)), float(np.percentile(boots, 97.5))
 
 
+CLOSING = """
+  This does NOT prove absence. The MDE is ~0.12 IC, so a leak smaller than
+  ~0.1 is invisible to this design.
+
+  But the premise is no longer untested. The recall probe has now been run
+  against statements_anon.jsonl (results/recall_probe_anon/):
+
+      corpus                       whole-statement quarter-identifiability
+      raw, date-scrubbed only      75.1%   RECALL-SATURATED
+      statements_anon.jsonl        34.3%   PARTIAL
+
+  Anonymization cut identifiability by more than half, and 34.3% is still far
+  above the ~1.3% a date-blind guess scores over this window. The model can
+  often still place the meeting it is reading.
+
+  That is what makes this null a finding rather than a non-result: recall is
+  measurably PRESENT and still does not convert into forecast skill. Knowing
+  which meeting you are looking at is not the same as knowing what happens
+  next -- two things the leakage literature routinely treats as one.
+"""
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--board", default="reports/sn")
@@ -128,12 +150,7 @@ def main() -> None:
               f"(shift {cmp['dIC'].mean()-cmp['haiku_dIC'].mean():+.3f})")
 
     if verdict == "NO-LEAK-ON-SONNET":
-        print("\n  This does NOT prove absence. MDE is ~0.12 IC, so a leak smaller than")
-        print("  ~0.1 is invisible to this design. And the premise is still untested:")
-        print("  the committed probe measured the DATE-SCRUBBED corpus at 75.1%")
-        print("  identifiable, never statements_anon.jsonl. Re-running the probe against")
-        print("  the anon corpus (~$1.60 batched) is what separates 'recall does not")
-        print("  help' from 'the anonymization never blocked recall'.")
+        print(CLOSING)
     print("\n  The plain arm's IC is a leak measurement, not an analyst result.")
 
     if args.out:

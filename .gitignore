@@ -11,6 +11,10 @@ venv/
 # PM layer replays, so it is versioned deliberately (~70 MB, 88 files).
 reports/*
 !reports/hk/
+!reports/sn/
 .DS_Store
 .claude/
 results/anonymize/llm_cache/
+logs/
+.Rhistory
+docs/.Rhistory

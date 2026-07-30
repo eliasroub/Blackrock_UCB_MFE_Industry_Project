@@ -102,12 +102,19 @@ def build_items(corpus_path: str | None = None,
     return items
 
 
+# Which bytes to probe. None/None reproduces the committed configuration exactly;
+# main() overrides them from --corpus / --excerpt-dir. Held at module level rather
+# than threaded through every command because `fetch` and `score` must not need them.
+CORPUS_PATH: str | None = None
+EXCERPT_DIR: str | None = None
+
+
 def cmd_submit() -> None:
     import anthropic
     from anthropic.types.message_create_params import MessageCreateParamsNonStreaming
     from anthropic.types.messages.batch_create_params import Request
 
-    items = build_items(args.corpus, args.excerpt_dir)
+    items = build_items(CORPUS_PATH, EXCERPT_DIR)
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     (RESULTS_DIR / "items.json").write_text(json.dumps(items, indent=1))
 
@@ -255,6 +262,8 @@ def main() -> None:
     ap.add_argument("--results-dir", default=None,
                     help="write elsewhere so committed results are never overwritten")
     args = ap.parse_args()
+    globals()["CORPUS_PATH"] = args.corpus
+    globals()["EXCERPT_DIR"] = args.excerpt_dir
     if args.results_dir:
         globals()["RESULTS_DIR"] = Path(args.results_dir)
         RESULTS_DIR.mkdir(parents=True, exist_ok=True)
