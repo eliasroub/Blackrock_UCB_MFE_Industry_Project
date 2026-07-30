@@ -29,7 +29,9 @@ import numpy as np
 import pandas as pd
 import yaml
 
-from src.data.fred_local import load_bundle
+# Prefix-dispatching loader (EQ_* → data/equity, else FRED) so the equities pod's
+# drivers are priceable here; pure-FRED inputs load exactly as before.
+from src.data.equity_local import load_any_bundle as load_bundle
 from src.layered.evaluation.ic import ICEvaluator, required_ic
 from src.layered.evaluation.panel import FeaturePanel
 from src.layered.features import FeatureEngine, from_persona

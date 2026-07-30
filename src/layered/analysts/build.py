@@ -181,7 +181,7 @@ def build_analyst(driver: str, llm, *, text_mode: str = "cue",
                                    perturbation=perturbation)
 
 
-def preflight_llm(model: str, *, max_tokens: int = 2000):
+def preflight_llm(model: str, *, max_tokens: int = 2000, cache_dir: str | None = None):
     """Construct and validate the client once, or exit with a clear message.
 
     A 120-250 word report plus its JSON scaffolding lands near 500-700 output
@@ -189,12 +189,16 @@ def preflight_llm(model: str, *, max_tokens: int = 2000):
     tail often enough that the JSON fails to parse and the call is wastefully
     retried. ``anthropic`` is imported here, lazily, for the reason in the module
     docstring.
+
+    ``cache_dir`` is passed through to the client's disk cache. Default ``None``
+    keeps every pre-existing caller byte-identical; the PM runners opt in so a
+    resumed or re-run meeting costs $0, per the house rule.
     """
     if not os.environ.get("ANTHROPIC_API_KEY"):
         print("[error] ANTHROPIC_API_KEY not set. Use --dry-run to inspect the prompt.")
         raise SystemExit(1)
     from src.llm.anthropic_client import AnthropicClient
-    llm = AnthropicClient(model=model, max_tokens=max_tokens)
+    llm = AnthropicClient(model=model, max_tokens=max_tokens, cache_dir=cache_dir)
     try:
         llm.validate()
     except Exception as e:  # noqa: BLE001

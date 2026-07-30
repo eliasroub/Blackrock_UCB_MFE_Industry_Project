@@ -36,6 +36,16 @@ def test_driver_levels_ignore_the_future():
     pd.testing.assert_frame_equal(full, trunc)
 
 
+def test_driver_levels_price_equity_drivers():
+    """The regression for the loader fix: ``driver_levels`` with ``macro=None`` must
+    load EQ_* inputs (data/equity) through the dispatching loader. Before the fix it
+    reached ``fred_local`` directly and died on ``EQ_BREADTH_PCT.csv not found`` —
+    which would have killed every equities-pod scoring pass."""
+    dates = pd.DatetimeIndex([pd.Timestamp("2019-06-30")])
+    levels = driver_levels(["sector_breadth"], dates)
+    assert not levels["sector_breadth"].isna().all()
+
+
 def test_analyst_snap_is_causal():
     """Every value in the baseline derives from a view formed at or before the
     meeting — the baseline must be exactly as constrained as the PM it benchmarks."""

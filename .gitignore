@@ -9,8 +9,12 @@ venv/
 # Run artifacts are local by default — they are large and mostly scratch.
 # reports/hk/ is the exception: it is the committed Haiku validation board that the
 # PM layer replays, so it is versioned deliberately (~70 MB, 88 files).
+# reports/hkpm/ is the PM-layer experiment run on that board, versioned for the
+# same reason.
 reports/*
 !reports/hk/
+!reports/hkpm/
 .DS_Store
 .claude/
 results/anonymize/llm_cache/
+results/pm/llm_cache/

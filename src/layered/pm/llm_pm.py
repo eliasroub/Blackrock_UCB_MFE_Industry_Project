@@ -287,16 +287,27 @@ def submit_arbitration_tool(drivers: list[str], trade: Optional[dict] = None,
         tags = [str(t) for t in (trade.get("risk_tags") or [])]
         if tags:
             props["risks"]["items"]["properties"]["tag"]["enum"] = tags
+        # Which space the leg weights live in is declared by the pod (`trade.space`),
+        # for the same reason `answer_space` is: telling the model yield semantics for
+        # an equity instrument would make every weight it emits mean the wrong thing,
+        # and the grader (sp_score for `return`, trade_pnl otherwise) reads this key's
+        # consequences too.
+        if str(trade.get("space", "")).strip().lower() == "return":
+            weight_desc = ("Signed exposure to that instrument's next-period RETURN: "
+                           "positive = long, negative = short, magnitude = size. The "
+                           "trade is scored as the weighted sum of returns.")
+        else:
+            weight_desc = ("Signed weight on that instrument's YIELD. The trade is "
+                           "scored as the weighted sum of yield changes, so a "
+                           "steepener is negative on the short leg and positive on "
+                           "the long one.")
         leg = {
             "type": "object",
             "properties": {
                 "instrument": {"type": "string"},
                 "weight": {
                     "type": "number", "minimum": -1.0, "maximum": 1.0,
-                    "description": ("Signed weight on that instrument's YIELD. The "
-                                    "trade is scored as the weighted sum of yield "
-                                    "changes, so a steepener is negative on the short "
-                                    "leg and positive on the long one."),
+                    "description": weight_desc,
                 },
             },
             "required": ["instrument", "weight"],
