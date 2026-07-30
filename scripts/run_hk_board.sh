@@ -34,10 +34,17 @@
 # arm-major with anon_cue first — the shipped configuration, and the board the PM
 # layer would replay.
 #
-# JOBS is about the API's tokens-per-minute ceiling, not CPU: each process is
-# ~99% blocked on HTTP. FOMC-only prompts at 8-way sustain roughly 230k input
-# tokens/min. Raise it only after checking the org's actual ITPM — a throttled run
-# does not crash, it quietly fills the panel with degraded views.
+# JOBS: the binding constraint is this MACHINE, not the API. Measured limits on the
+# org this key belongs to are 10,000 req/min, 10M input tok/min, 2M output tok/min;
+# at the observed 2,989 in / 928 out tokens per call, even running all 44 legs at
+# once uses ~16% of the tightest limit. So rate limiting is not the reason to hold
+# back — 44 concurrent python processes each loading pandas and its own data bundle
+# is. 16 is a comfortable default on a 12-core box (~48 min for the full board);
+# drop to 8 on a smaller machine, raise toward 44 if memory allows.
+#
+# Watch degraded counts regardless. A throttled or unauthenticated run does not
+# crash — preflight exits per leg on a bad key, but a mid-run 429 becomes an
+# abstention and the board fills with them quietly.
 #
 # Usage:  ./scripts/run_hk_board.sh [driver ...]
 #         JOBS=11 ARMS="anon_cue plain" ./scripts/run_hk_board.sh inflation
@@ -48,7 +55,7 @@ MODEL="${MODEL:-claude-haiku-4-5-20251001}"
 START="${START:-2016-01-01}"
 END="${END:-2026-06-30}"
 OUTDIR="${OUTDIR:-reports/hk}"
-JOBS="${JOBS:-8}"
+JOBS="${JOBS:-16}"
 ARMS="${ARMS:-anon_cue anon_full none plain}"
 
 DRIVERS=("$@")
