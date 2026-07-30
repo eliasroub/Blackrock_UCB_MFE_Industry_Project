@@ -1,8 +1,14 @@
 """How often does each analyst's text channel actually carry anything?
 
-Free, no model calls. An analyst whose corpus never matches its cues runs numbers-only
-no matter which --text-mode is requested, so its whole/cue/none arms are the same bytes
-and any "text does not help" reading from it is an artifact. Run before spending.
+Free, no model calls. An analyst whose corpus carries nothing runs numbers-only no
+matter which arm is requested, so its arms are the same bytes and any "text does not
+help" reading from it is an artifact. Run before spending.
+
+Priced per ARM, since an arm is a corpus choice: `plain` and `anon_full` serve the
+whole statement, `anon_cue` the per-driver extract, `none` nothing. The known case
+this exists to surface is `positioning`, whose excerpt is the empty placeholder at
+all 172 statements — the FOMC does not discuss investor positioning — so its
+anon_cue arm is byte-identical to its none arm.
 """
 from __future__ import annotations
 import sys, warnings
@@ -14,11 +20,13 @@ from src.layered.evaluation import release_dates
 
 WINDOW = ("2016-01-01", "2026-06-30")
 
+# The 11-persona US-only roster. The six international personas were removed in the
+# US-only refocus (upstream 2e5694c); their corpora stay in data/ for a revival.
 DRIVERS = ["inflation", "inflation_expectations", "labor_tightness", "term_premium",
            "financial_conditions", "balance_sheet", "curve_slope",
-           "ea_rates", "uk_rates", "jp_rates", "ea_equity", "uk_equity", "jp_equity",
            "positioning", "risk_appetite", "sector_breadth", "vol_regime"]
 DATES = pd.date_range("2016-06-30", "2026-06-30", freq="QE")
+ARMS = ("anon_cue", "anon_full", "plain")  # `none` carries no document by definition
 
 print(f"{'analyst':24s} {'obs':>5s} {'mode':6s} {'non-empty':>10s} {'mean chars':>11s}")
 print("-" * 64)
@@ -33,9 +41,9 @@ for d in DRIVERS:
                                  freq=_a.horizon_freq))
     except Exception as e:
         nobs = f"ERR:{type(e).__name__}"
-    for mode in ("cue", "whole"):
+    for mode in ARMS:
         try:
-            a = build_analyst(d, None, text_mode=mode, verbose=False)
+            a = build_analyst(d, None, text_arm=mode, verbose=False)
         except Exception as e:
             print(f"{d:24s} {mode:6s}  BUILD ERR {type(e).__name__}")
             continue
@@ -47,16 +55,24 @@ for d in DRIVERS:
             except Exception as e:
                 txt = ""
                 errs.append(f"{type(e).__name__}: {e}")
-            if txt and txt.strip():
+            # The selector renders a placeholder SENTENCE when a document says
+            # nothing about the driver, so a naive truthiness test scores it as
+            # text. That would hide the exact case this script exists to surface.
+            if txt and txt.strip() and "says nothing about this driver" not in txt:
                 n += 1; chars.append(len(txt))
         pct = 100.0 * n / len(DATES)
         mc = int(sum(chars) / len(chars)) if chars else 0
         flag = "   <-- ALWAYS EMPTY" if n == 0 else ("   <-- sparse" if pct < 50 else "")
         if n == 0 and errs: flag += f"  [{errs[0][:50]}]"
         print(f"{d:24s} {str(nobs):>5s} {mode:6s} {n:4d}/{len(DATES):<3d} {pct:3.0f}% {mc:9d}{flag}")
-        if mode == "whole":
+        if mode == ARMS[0]:
             TOTAL[0] += nobs if isinstance(nobs, int) else 0
 
 print("-" * 64)
+N_ARMS = 4  # anon_cue, anon_full, none, plain
+PER_CALL = 0.00763  # measured 2026-07-29 pilot; 1.42x the pre-input_ranking figure
 print(f"{'TOTAL':24s} {TOTAL[0]:>5d} observations across {len(DRIVERS)} analysts"
-      f"  ->  x3 text arms = {TOTAL[0]*3} calls")
+      f"  ->  x{N_ARMS} arms = {TOTAL[0]*N_ARMS} calls"
+      f"  ~ ${TOTAL[0]*N_ARMS*PER_CALL:.0f}")
+print("Carry-forward is 0 on a release clock (measured in all 40 committed logs), so"
+      " calls == observations.")
