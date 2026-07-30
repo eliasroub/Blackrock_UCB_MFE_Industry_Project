@@ -12,19 +12,24 @@ reproducible at $0; nothing here informed a prompt (`docs/analyst-layer.md` §6)
 
 ## The one-paragraph version
 
-The headline number on this board is wrong, and the interesting result is why. `balance_sheet`
-posts a rank IC of **0.66**, four times the next-best analyst — and it is the *least*
-meaningful cell in the table, because its target's direction of change repeats 77% of the time
-and the analyst's own calls are equally persistent. It is trend-following the easiest series it
-was handed. `inflation` posts **0.26** with calls that are essentially independent month to
-month, and that is the better result. A ranked IC table hides this completely; the diagnostic
-that exposes it is the autocorrelation of the signal and the outcome, not the correlation
-between them.
+The headline number on this board is real and nearly worthless, and the reason is economic
+rather than statistical. `balance_sheet` posts a rank IC of **0.66**, four times the next-best
+analyst. But the Fed's balance sheet is a structural, pre-announced series whose direction
+repeats 77% of the time — **low uncertainty, therefore no risk premium.** Being right about it
+earns nothing, because it is already in the price. Measured against tradeable yields instead of
+its own series, that 0.66 becomes **0.159**, the worst transport of any driver on the board.
+
+Generalised: across all eleven analysts, outcome autocorrelation predicts driver-space IC
+(Spearman **+0.727**) and does **not** predict asset-space IC (**+0.173**). Driver-space |IC|
+ranges 0.043–0.655; asset-space mean |IC| ranges **0.047–0.159 for every single driver** — a
+5.3× compression in dispersion, with nothing clearing the 0.289 economic bar. So the IC ranking
+is substantially a ranking of *how forecastable each target is*, and predictability is precisely
+the property the market does not pay for.
 
 Alongside that: on **both** Haiku and Sonnet, handing the analyst the real dated statement
 instead of the anonymized one does **not** improve the IC — while a separate probe shows the
-model can still identify the meeting 34% of the time from anonymized text. Recall is present
-and does not convert into skill.
+model can still identify the meeting 34% of the time from anonymized text. Recall is present and
+does not convert into skill.
 
 ---
 
@@ -60,7 +65,76 @@ Two thresholds, and they are not the same thing:
 all three are `balance_sheet`. So on the honest reading, this board contains **one** analyst
 that would matter economically and it is the one whose number does not survive scrutiny.
 
-### Why `balance_sheet` 0.66 is not skill
+### Why `balance_sheet` 0.66 is the least valuable cell in the table
+
+The economics first, because it drives the measurement. The Fed's balance sheet is a
+**structural, administered series**: during QE it grows every month, during QT it shrinks every
+month, and the direction is announced in advance. It is highly predictable — and a highly
+predictable quantity carries **little uncertainty, therefore little risk premium.** Being right
+about it is not worth anything, because everyone else is also right about it and the price
+already reflects that.
+
+So the prediction is not "the analyst has no skill" — it plainly has skill at the stated task.
+The prediction is that **this particular skill should not reach an asset.** That is exactly what
+the second IC was built to test, and it is why the design scores conviction against both the
+driver's own series *and* the tradeable instrument space.
+
+### Predictability lifts driver-space IC and does nothing for asset-space IC
+
+Per driver: autocorrelation of the driver's own outcome, IC against that outcome, and mean |IC|
+across the four instruments (`DGS3MO`, `DGS2`, `DGS10`, `T10YIE`).
+
+| driver | outcome ac(1) | \|driver IC\| | mean \|instrument IC\| | transport |
+|---|---|---|---|---|
+| **balance_sheet** | **+0.631** | **0.655** | 0.159 | **0.24** |
+| inflation | +0.501 | 0.262 | 0.096 | 0.37 |
+| financial_conditions | +0.308 | 0.198 | 0.093 | 0.47 |
+| curve_slope | +0.162 | 0.282 | 0.098 | 0.35 |
+| risk_appetite | +0.105 | 0.147 | 0.099 | 0.68 |
+| term_premium | +0.071 | 0.049 | 0.085 | 1.76 * |
+| labor_tightness | +0.010 | 0.153 | 0.106 | 0.69 |
+| inflation_expectations | -0.017 | 0.043 | 0.111 | 2.55 * |
+| sector_breadth | -0.139 | 0.161 | 0.047 | 0.29 |
+| vol_regime | -0.246 | 0.100 | 0.065 | 0.66 |
+| positioning | -0.296 | 0.084 | 0.152 | 1.80 * |
+
+\* transport is a ratio, so it explodes on a near-zero denominator. The three starred rows are
+arithmetic artifacts, not findings.
+
+Three results, ordered by how much weight they can carry:
+
+**1. The dispersion collapses by 5.3×, and this needs no statistical test at all.**
+
+| | range | sd |
+|---|---|---|
+| \|driver IC\| | 0.043 – 0.655 | **0.172** |
+| mean \|instrument IC\| | 0.047 – 0.159 | **0.033** |
+
+The driver-space ranking spans a factor of 15. In asset space **every one of the eleven drivers
+lands between 0.047 and 0.159** — below the 0.177 needed for t = 2, and far below the 0.289
+economic bar. Whatever separates these analysts in driver space is almost entirely gone by the
+time it reaches a yield.
+
+**2. Autocorrelation predicts driver-space IC (Spearman +0.727, n = 11) and does *not* predict
+asset-space IC (+0.173).**
+
+That pair is the finding. Target predictability buys driver-space IC and buys nothing in asset
+space — which is what "no uncertainty, no premium" looks like when you measure it. The IC
+ranking in §1 is substantially a ranking of *how forecastable each target is*, not of how good
+each analyst is.
+
+**3. The transport ratio itself is only suggestive, and I am not claiming it.** Across all 11
+drivers, ac(1) vs transport is Spearman **−0.555** — the direction the premium argument
+predicts. But restricted to the six drivers with a non-trivial denominator (|driver IC| ≥ 0.15)
+it falls to **−0.257**. So the full-sample number is substantially driven by the small-
+denominator rows, and the ratio does not support a claim on its own. Results 1 and 2 do not
+depend on it.
+
+`balance_sheet` remains the extreme case on the robust measures: the **highest** driver IC on
+the board (0.655) and the **lowest transport of any driver with meaningful driver IC** (0.24).
+It converts a 0.655 into a 0.159.
+
+### The mechanical reading: it is describing the regime, not forecasting it
 
 | | signal ac(1) | outcome ac(1) | outcome sign repeats | IC |
 |---|---|---|---|---|
@@ -276,10 +350,14 @@ expensive outcome, since the prose is most of the token cost.
 
 1. **Re-point one of the two duplicate level features** so no pair is graded on the same
    series. Catalogue fix, not a caveat to carry forever.
-2. **Retire `balance_sheet` as a headline** or re-specify its target as a *surprise* relative
-   to announced policy, which is the forecastable part.
-3. **Report signal/outcome autocorrelation beside every IC** as standard. It is the single
-   cheapest addition and it reordered this board.
+2. **Re-specify `balance_sheet`'s target as a surprise** relative to announced policy. The
+   level is administered and pre-announced; only the deviation from the announced path carries
+   uncertainty, and therefore only the deviation can carry a premium. Grading the level rewards
+   an analyst for reciting the schedule.
+3. **Report outcome autocorrelation beside every IC, and grade every driver in asset space as
+   well as its own.** Autocorrelation is an *ex ante* screen — it flags a low-premium target
+   before any money is committed — and the two-IC split is what measures whether driver skill
+   transports. Neither costs anything and together they reordered this board.
 4. **Perturbation pass** to turn self-reported weights into measured sensitivities.
 5. **Widen the leak test** to all 11 drivers. At 3 drivers the MDE is ~0.12; the null deserves
    a tighter bound than that.
