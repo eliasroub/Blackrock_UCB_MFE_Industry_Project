@@ -12,17 +12,32 @@
 #
 # `plain` is a DECLARED LEAK ARM (EXPERIMENTS.md → analyst-4arm-haiku, and
 # docs/decisions.md 2026-07-29). Its IC is a leak measurement and must never be
-# cited as an analyst result. It is written with a `_plain` suffix so it can never
-# be picked up as a board leg by ViewBoard's `*_on.jsonl` glob.
+# cited as an analyst result. It carries a `_plain` suffix so ViewBoard's
+# `*_on.jsonl` glob can never pick it up as a board leg.
 #
-# anon_cue runs first because it is the shipped configuration, so a truncated run
-# still leaves the most useful board. Every leg shares one config, which is what
-# lets ViewBoard assemble them without --no-identity-check.
+# ── Why one flat pool, not arm-by-arm ───────────────────────────────────────
+# Every (driver, arm) leg is fully independent, verified rather than assumed:
+#   * analyst memory is a per-instance attribute (llm_analyst.py `self._memory`),
+#     so each leg is its own process with its own memory chain — legs cannot see
+#     each other's views
+#   * every write path derives from --out, unique per (driver, arm); the only
+#     shared call is makedirs(exist_ok=True), which is concurrency-safe
+#   * the disk cache is off by default, so there is no shared cache to race on
+#   * no mutable module-level state anywhere in the analyst path
 #
-# Concurrency defaults to 8. Each process is ~99% blocked on HTTP, so this is about
-# the API's tokens-per-minute ceiling, not CPU: FOMC-only prompts at 8-way sustain
-# roughly 230k input tokens/min. Raise it only after checking the org's actual ITPM
-# — a throttled run does not crash, it quietly fills the panel with degraded views.
+# So arms do NOT need to be serialised, and serialising them costs real time: a
+# barrier between arms pays the straggler penalty four times instead of once, and
+# a measured straggler in this repo ran 2.1x the median leg. The pool below is
+# flat over driver x arm and bounded only by JOBS.
+#
+# Ordering still matters for a run that gets cut short, so legs are emitted
+# arm-major with anon_cue first — the shipped configuration, and the board the PM
+# layer would replay.
+#
+# JOBS is about the API's tokens-per-minute ceiling, not CPU: each process is
+# ~99% blocked on HTTP. FOMC-only prompts at 8-way sustain roughly 230k input
+# tokens/min. Raise it only after checking the org's actual ITPM — a throttled run
+# does not crash, it quietly fills the panel with degraded views.
 #
 # Usage:  ./scripts/run_hk_board.sh [driver ...]
 #         JOBS=11 ARMS="anon_cue plain" ./scripts/run_hk_board.sh inflation
@@ -52,22 +67,35 @@ leg () {                       # leg <driver> <arm>
   python3 -m src.run_analyst_ic --driver "$d" --text-arm "$arm" \
       --start "$START" --end "$END" --model "$MODEL" --memory \
       --out "$out" > "logs/${d}_${arm}.log" 2>&1
-  local n deg
+  local rc=$? n deg
   n=$(wc -l < "$out" 2>/dev/null | tr -d ' ')
   deg=$(grep -c '"degraded": true' "$out" 2>/dev/null || true)
-  echo "[board] ${d}_${arm} — ${n:-0} records, ${deg:-0} degraded"
+  echo "[board] ${d}_${arm} — ${n:-0} records, ${deg:-0} degraded (exit $rc)"
   # Degraded views are the silent failure mode: three retries, then an abstention,
   # and the run continues. Surface it per leg rather than at QC.
-  [ "${deg:-0}" != "0" ] && echo "[board] !! ${d}_${arm} has ${deg} degraded views — inspect before use"
+  if [ "${deg:-0}" != "0" ] || [ "$rc" != "0" ]; then
+    echo "[board] !! ${d}_${arm} needs inspection before use — logs/${d}_${arm}.log"
+  fi
 }
 
+# Build the flat job list, arm-major so a truncated run leaves whole arms.
+JOBLIST=()
 for arm in $ARMS; do
-  echo "[board] === arm '$arm' over ${#DRIVERS[@]} drivers, ${JOBS}-way ==="
-  echo "[board]     window $START..$END  model $MODEL  out $OUTDIR"
-  for d in "${DRIVERS[@]}"; do
-    leg "$d" "$arm" &
-    while [ "$(jobs -rp | wc -l)" -ge "$JOBS" ]; do wait -n; done
-  done
-  wait
+  for d in "${DRIVERS[@]}"; do JOBLIST+=("$d:$arm"); done
 done
-echo "[board] done. Legs in $OUTDIR/  — next: per-leg QC, then docs/runbook.md Part C"
+
+echo "[board] ${#JOBLIST[@]} legs (${#DRIVERS[@]} drivers x $(echo "$ARMS" | wc -w | tr -d ' ') arms), ${JOBS}-way"
+echo "[board]   window $START..$END   model $MODEL   out $OUTDIR"
+echo "[board]   arms: $ARMS"
+
+for job in "${JOBLIST[@]}"; do
+  leg "${job%%:*}" "${job##*:}" &
+  # Poll rather than `wait -n`: macOS ships bash 3.2, where `wait -n` is an
+  # invalid option and the loop would abort the whole board. A 1s poll is free
+  # against ~16-minute legs.
+  while [ "$(jobs -rp | wc -l)" -ge "$JOBS" ]; do sleep 1; done
+done
+wait
+
+echo "[board] done. Legs in $OUTDIR/"
+echo "[board] next: per-leg QC (zero degraded, record counts), then docs/runbook.md Part C"
