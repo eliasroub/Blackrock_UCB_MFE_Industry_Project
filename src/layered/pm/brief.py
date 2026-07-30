@@ -23,6 +23,18 @@ holds there:
 Deliberately excluded: ``DriverView.level``. It is admissible — it is the level as of
 the view, not the outcome — but it adds numeric density for no benefit and sits one
 step away from the answer the PM is being asked to predict.
+
+Two switches carve the arms of the PM experiment out of this one renderer, so the
+arms differ in what the PM is shown and in nothing else:
+
+  * ``include_reports=False`` is the **conviction-only arm**: nothing the analyst
+    *wrote* survives — no report prose, no falsifier, no key evidence, and no gaps
+    section (all four are reasoning) — only the call, its conviction, its horizon,
+    and its age. This is what makes "do the rationales add value?" a comparison of
+    two briefs rather than two pipelines.
+  * ``include_input_ranking=True`` adds each analyst's complete per-input
+    attribution. Excluded by default so every pre-existing brief reproduces
+    byte-for-byte; the "everything the analysts produced" arm turns it on.
 """
 from __future__ import annotations
 
@@ -106,7 +118,8 @@ def horizon_labels(drivers: list[str], persona_dir: Optional[Path] = None) -> di
 
 
 def _entry_block(entry: BoardEntry, horizon: str, *, include_reports: bool,
-                 max_report_words: Optional[int]) -> str:
+                 max_report_words: Optional[int],
+                 include_input_ranking: bool = False) -> str:
     lines = [f"=== {entry.driver} ==="]
 
     if not entry.present:
@@ -126,7 +139,14 @@ def _entry_block(entry: BoardEntry, horizon: str, *, include_reports: bool,
         status.append("unchanged since its previous report (its evidence had not moved)")
     lines.append("Status: " + "; ".join(status) + ".")
 
-    if include_reports and (v.report or v.reasoning):
+    # The conviction-only arm ends here. Falsifier and key evidence are reasoning as
+    # much as the prose is — leaving them in would leak the rationale the arm exists
+    # to withhold, and any measured difference against the full arm would understate
+    # what the reports carry.
+    if not include_reports:
+        return "\n".join(lines)
+
+    if v.report or v.reasoning:
         body = (v.report or v.reasoning).strip()
         if max_report_words:
             words = body.split()
@@ -139,6 +159,12 @@ def _entry_block(entry: BoardEntry, horizon: str, *, include_reports: bool,
         lines.append(f"Would change its mind if: {v.falsifier}")
     if v.key_evidence:
         lines.append(f"Leaned on: {', '.join(v.key_evidence)}")
+    if include_input_ranking and v.input_ranking:
+        lines.append("Attribution — every input it was handed, its pull on the view, "
+                     "weight 0-1 (0 = read and ignored):")
+        width = max(len(r.input) for r in v.input_ranking)
+        for r in v.input_ranking:
+            lines.append(f"  {r.input.ljust(width)}  {r.pull:<7}  {r.weight:.2f}")
     return "\n".join(lines)
 
 
@@ -165,6 +191,7 @@ def _gaps_block(meeting: Meeting, drivers: list[str]) -> str:
 
 def render_brief(meeting: Meeting, *, drivers: Optional[list[str]] = None,
                  include_reports: bool = True, max_report_words: Optional[int] = None,
+                 include_input_ranking: bool = False,
                  scrub: bool = True, blind: Optional[str] = None,
                  persona_dir: Optional[Path] = None) -> str:
     """The panel as the PM sees it.
@@ -173,6 +200,9 @@ def render_brief(meeting: Meeting, *, drivers: Optional[list[str]] = None,
     control arm. It shares this renderer rather than having its own so the two arms
     differ in *what the PM is shown* and in nothing else; a separate code path would
     make any measured difference partly an artifact of the formatting.
+
+    ``include_reports=False`` (the conviction-only arm) and ``include_input_ranking``
+    are the other two arms, carved the same way — see the module docstring.
     """
     order = drivers if drivers is not None else meeting.drivers
     if blind is not None:
@@ -185,10 +215,13 @@ def render_brief(meeting: Meeting, *, drivers: Optional[list[str]] = None,
               "One analyst has reported. It covers one driver and nothing else."]
     blocks += [_entry_block(meeting.entries[d], labels[d],
                             include_reports=include_reports,
-                            max_report_words=max_report_words)
+                            max_report_words=max_report_words,
+                            include_input_ranking=include_input_ranking)
                for d in order if d in meeting.entries]
 
-    if blind is None:
+    # The gaps section is the panel's own words about its evidence, so it is report
+    # content: the conviction-only arm drops it along with the prose.
+    if blind is None and include_reports:
         gaps = _gaps_block(meeting, order)
         if gaps:
             blocks.append(gaps)

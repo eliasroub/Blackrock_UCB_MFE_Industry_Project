@@ -497,11 +497,19 @@ class LLMPM:
 
     def __init__(self, pod: str, config: dict, llm=None,
                  max_report_words: Optional[int] = None, blind: Optional[str] = None,
-                 use_memory: bool = False, perturbation=None):
+                 use_memory: bool = False, perturbation=None,
+                 include_reports: bool = True, include_input_ranking: bool = False):
         self.pod = pod
         self.config = config
         self.llm = llm
         self.max_report_words = max_report_words
+        # The conviction-only arm: the brief carries each analyst's call, conviction,
+        # and freshness — nothing the analyst wrote. Default True reproduces every
+        # pre-existing run byte-for-byte.
+        self.include_reports = include_reports
+        # The full-attribution arm: render each analyst's complete input_ranking into
+        # its report block. Off by default for the same reproducibility reason.
+        self.include_input_ranking = include_input_ranking
         # The control arm: render one analyst's report instead of the panel, so the
         # PM structurally cannot arbitrate. Shares the renderer with the full arm so
         # the two differ in what is shown and in nothing else.
@@ -611,6 +619,12 @@ class LLMPM:
                 "You have been shown one analyst's report. Report only on that "
                 "analyst's driver."
             )
+        if not self.include_reports:
+            parts.append(
+                "The panel's reports are not shown at this meeting. You have each "
+                "analyst's call, its conviction, and how fresh it is — nothing else. "
+                "Arbitrate from those."
+            )
         parts.append(_CALIBRATION_RATE if self.answer_space == "rate"
                      else _CALIBRATION_DRIVER)
         parts.append(_ABSTENTION)
@@ -658,7 +672,10 @@ class LLMPM:
         """The brief. ``memory`` defaults to None so every caller that inspects a prompt
         without running a meeting — the dry-run above all — keeps working unchanged."""
         brief = render_brief(meeting, drivers=self.reads,
-                             max_report_words=self.max_report_words, blind=self.blind)
+                             include_reports=self.include_reports,
+                             max_report_words=self.max_report_words,
+                             include_input_ranking=self.include_input_ranking,
+                             blind=self.blind)
         prompt = brief if memory is None else f"{self._render_memory(memory)}\n\n{brief}"
         # String-level perturbations (whitespace, scaffolding rewording) act on the
         # assembled prompt, here, so ``arbitrate`` (which re-renders through this method)

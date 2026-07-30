@@ -53,6 +53,14 @@ def main():
     ap.add_argument("--blind", default=None,
                     help="control arm: show only this driver's report, so the PM "
                          "structurally cannot arbitrate")
+    ap.add_argument("--no-reports", dest="reports", action="store_false",
+                    help="conviction-only arm: the brief carries each analyst's call, "
+                         "conviction, and freshness — no report prose, no falsifier, "
+                         "no key evidence, no gaps section")
+    ap.add_argument("--include-input-ranking", action="store_true",
+                    help="render each analyst's complete input attribution into its "
+                         "report block (off by default, so pre-existing briefs "
+                         "reproduce byte-for-byte)")
     ap.add_argument("--memory", action="store_true",
                     help="show the PM its previous arbitration and the position it is "
                          "already carrying (off by default, so the memory-less arm "
@@ -70,10 +78,17 @@ def main():
     ap.add_argument("--out", default="reports/pm/pm_run.jsonl")
     args = ap.parse_args()
 
+    # The attribution ranking is report content; a conviction-only brief that carried
+    # it would leak the reasoning the arm exists to withhold.
+    if not args.reports and args.include_input_ranking:
+        ap.error("--include-input-ranking cannot be combined with --no-reports")
+
     llm = None if args.dry_run else preflight_llm(args.model, max_tokens=args.max_tokens)
     pm = build_pm(args.pod, llm, max_report_words=args.max_report_words,
                   blind=args.blind, use_memory=args.memory,
-                  perturbation=pm_perturbation(args.perturb))
+                  perturbation=pm_perturbation(args.perturb),
+                  include_reports=args.reports,
+                  include_input_ranking=args.include_input_ranking)
     board = build_board(pm, args.board, args.board_suffix,
                         check_identity=not args.no_identity_check)
 
@@ -81,7 +96,9 @@ def main():
     if args.limit:
         dates = dates[: args.limit]
     print(f"[info] pod={args.pod} drivers={pm.listens_to} meetings={len(dates)} "
-          f"clock={pm.clock_freq} blind={args.blind}", file=sys.stderr)
+          f"clock={pm.clock_freq} blind={args.blind} "
+          f"reports={'on' if pm.include_reports else 'OFF (conviction-only)'}"
+          f"{' +input_ranking' if pm.include_input_ranking else ''}", file=sys.stderr)
 
     if args.dry_run:
         m = pm.build_inputs(board, dates[0])
@@ -112,6 +129,10 @@ def main():
             # observation or one conditioned on the PM's own previous position.
             "answer_space": pm.answer_space,
             "memory": pm.use_memory,
+            # Which brief arm this run is: reports off is the conviction-only PM, and
+            # the attribution flag decides whether input_ranking reached the prompt.
+            "include_reports": pm.include_reports,
+            "include_input_ranking": pm.include_input_ranking,
             "board_thresholds": pm.board_kwargs,
             "system_prompt": pm._system_prompt(),
             "disagreement": "pm.disagreement.panel_disagreement (computed, not asked)",
