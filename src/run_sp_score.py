@@ -53,6 +53,10 @@ def main():
     ap.add_argument("--riskfree", default="data/fred/DGS1MO.csv")
     ap.add_argument("--start", default=None)
     ap.add_argument("--end", default=None)
+    ap.add_argument("--file-suffix", default="",
+                    help="run-file suffix for a model variant, e.g. '_sonnet' reads "
+                         "<pod>_<arm>_sonnet.jsonl. The mech arm is model-independent "
+                         "arithmetic and always reads the unsuffixed file.")
     # Preregistered constants — changing them after seeing results is re-tuning.
     ap.add_argument("--ridge-alpha", type=float, default=1.0)
     ap.add_argument("--ridge-warmup", type=int, default=36)
@@ -70,7 +74,11 @@ def main():
     positions: dict[str, pd.Series] = {}
     trade_rows: dict[str, pd.Series] = {}
     for arm in ARMS:
-        path = os.path.join(args.runs_dir, f"{args.pod}_{arm}.jsonl")
+        # mech is arithmetic off the board — no model variant exists, and silently
+        # reading a differently-modelled file for the OTHER arms would mix models in
+        # one table, so the suffix is applied strictly (missing file = skipped row).
+        suffix = "" if arm == "mech" else args.file_suffix
+        path = os.path.join(args.runs_dir, f"{args.pod}_{arm}{suffix}.jsonl")
         if not os.path.exists(path):
             print(f"[skip] {path} not found", file=sys.stderr)
             continue
@@ -79,6 +87,15 @@ def main():
         tp = trade_positions(run.trades)
         if tp.notna().any():
             trade_rows[f"{arm} (trade)"] = tp
+
+    # Every row is judged on the same months: a full-window mech/baseline series
+    # next to a sub-window arm would otherwise present different decades as one
+    # comparison.
+    lo = pd.Timestamp(args.start) if args.start else None
+    hi = pd.Timestamp(args.end) if args.end else None
+    if lo is not None or hi is not None:
+        positions = {k: v.loc[lo:hi] for k, v in positions.items()}
+        trade_rows = {k: v.loc[lo:hi] for k, v in trade_rows.items()}
 
     # The no-PM baselines, through the identical map and clock.
     snap = analyst_snap(board, dates, list(polarity))

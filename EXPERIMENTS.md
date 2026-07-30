@@ -372,6 +372,57 @@ seeing them changes no rule. The analyst-4arm results (Elias's board) have been
 seen only as file counts and config metas here — their ICs are a separate entry's
 business.
 
+### pm-3arm-sonnet — preregistered 2026-07-30 (stage 1 approved)
+
+**Question.** The discriminating follow-up pm-3arm-haiku licensed but could not
+answer: with a STRONGER model in the PM seat over the same Haiku analyst board,
+does arbitration add value? This is the original "informed PM over cheap crowd"
+configuration. A Sonnet null here bites much harder than the Haiku null did.
+
+**Design.** Identical to pm-3arm-haiku in every respect except model and window:
+`claude-sonnet-5` (the repo's established PM model — docs/pm-layer.md), same 3
+arms × 5 pods, same board (`_anon_cue`), memory off, cache on, same preregistered
+constants and position map. **Stage 1 window: 2021-07-01 → 2026-06-30** (60
+monthly meetings; ≈$38, approved 2026-07-30). **Stage 2 (full 2016-01 → 2026-06
+window)** is pre-registered here but runs only on explicit budget approval;
+memory-off + prompt-keyed cache make it purely incremental (stage-1 meetings
+replay at $0), so stage 2 changes n, never the answers already recorded.
+
+**Outputs.** `reports/hkpm/<pod>_{full,conv,raw}_sonnet.jsonl`. The mechanical
+arm is model-independent arithmetic — the existing `<pod>_mech.jsonl` runs serve
+both experiments, window-sliced at scoring.
+
+**Decision rules: identical to pm-3arm-haiku (LOCKED), applied per stage window.**
+Cross-model comparisons (Sonnet arm vs the same Haiku arm, paired on shared
+meetings) are SECONDARY and descriptive — the primary rules never mix models.
+
+**Power, stated honestly (stage 1).** n=60: SE of an annualized Sharpe ≈0.45;
+the ridge baseline has only ≈24 scored months after its 36-pair warmup, so the
+equities ridge comparison at stage 1 is reported but nearly uninformative; the
+board_mean comparison and the rates d_ic tests carry the stage-1 verdicts.
+
+**Directional predictions, recorded before the run.**
+1. Sonnet full does NOT destroy balance_sheet the way Haiku did (d_ic on
+   balance_sheet materially less negative than Haiku's −0.4 to −0.57).
+2. full − conv remains insignificant even for Sonnet (the prose-value null is
+   about the reports, not the reader).
+3. The sizing result replicates: every Sonnet arm's own sized trade beats the
+   mechanical map of its own convictions.
+4. Equities: still no arm beats board_mean at p_boot < .05 (the internals views
+   themselves are the binding constraint, and a better reader cannot fix them).
+
+**Peeking status.** The Haiku results have been seen in full — that is what
+motivated this experiment and shaped predictions 1-4; stated, not hidden. No
+Sonnet PM output exists on any arm at either window.
+
+> **Status 2026-07-30, stage 1 interrupted by the workspace API cap.** 629/900
+> meetings completed and disk-cached ($27.47 spent); 271 failed on the monthly
+> usage limit (HTTP 400, access resets 2026-08-01 00:00 UTC) plus a brief 529
+> burst. Every leg is currently over the 10% degraded gate → **no leg is scored
+> or peeked until the retry pass completes** (cached meetings replay
+> byte-identical at $0; only failed calls re-hit the API, est. ≈$12). Run files
+> stay uncommitted until valid.
+
 ### recall-stratified-ic — analysis plan preregistered 2026-07-22 (binds a future run)
 
 **Purpose.** The accepted position ("live with the look-ahead bias") gets one
