@@ -1,0 +1,123 @@
+==============================================================================
+GATE — per-leg QC.  Nothing is computed off a leg that fails.
+==============================================================================
+  legs 44   complete 44/44   records 5528
+  retries  0   <- the throttling detector; hundreds here = rate limited
+  degraded 7 of 5528 (0.13%) — excluded from scoring, so the cost is a smaller n
+     affected legs: curve_slope_anon_cue(1), curve_slope_plain(2), inflation_anon_full(2), inflation_expectations_anon_cue(2)
+  attribution coverage: 44/44 legs >=95%
+  QC PASS
+
+==============================================================================
+A — primary IC: signed conviction vs the driver's own next-release change
+==============================================================================
+arm                      none  anon_cue  anon_full  plain
+driver                                                   
+balance_sheet           0.623     0.655      0.695  0.732
+curve_slope             0.050     0.282      0.124  0.096
+financial_conditions    0.244     0.198      0.098  0.284
+inflation               0.281     0.262      0.289  0.226
+inflation_expectations  0.010     0.043     -0.108 -0.057
+labor_tightness         0.074     0.153      0.137  0.118
+positioning            -0.104    -0.084      0.055 -0.013
+risk_appetite           0.171     0.147      0.088  0.066
+sector_breadth         -0.221    -0.161     -0.176 -0.113
+term_premium           -0.046     0.049     -0.109 -0.077
+vol_regime             -0.155    -0.100     -0.158 -0.306
+
+  t-statistics:
+arm                     none  anon_cue  anon_full  plain
+driver                                                  
+balance_sheet           8.83      9.60      10.73  11.91
+curve_slope             0.56      3.25       1.38   1.06
+financial_conditions    2.79      2.24       1.09   3.29
+inflation               3.22      2.99       3.29   2.56
+inflation_expectations  0.11      0.48      -1.21  -0.63
+labor_tightness         0.82      1.70       1.52   1.31
+positioning            -1.16     -0.94       0.61  -0.14
+risk_appetite           1.93      1.64       0.98   0.73
+sector_breadth         -2.52     -1.81      -1.99  -1.26
+term_premium           -0.51      0.54      -1.22  -0.85
+vol_regime             -1.74     -1.11      -1.78  -3.56
+
+==============================================================================
+B — arm contrasts
+==============================================================================
+  text quantity (IC delta vs the numbers-only arm):
+                        cue - none  full - none  full - cue
+driver                                                     
+balance_sheet                0.032        0.073       0.041
+curve_slope                  0.231        0.073      -0.158
+financial_conditions        -0.046       -0.146      -0.100
+inflation                   -0.019        0.008       0.027
+inflation_expectations       0.034       -0.118      -0.152
+labor_tightness              0.079        0.063      -0.016
+positioning                  0.020        0.159       0.140
+risk_appetite               -0.025       -0.083      -0.058
+sector_breadth               0.061        0.045      -0.016
+term_premium                 0.094       -0.063      -0.157
+vol_regime                   0.055       -0.003      -0.059
+
+  LEAK READ — plain minus anon_full (the ONLY pair the prereg licenses).
+  Positive = the un-anonymized text carried recoverable period information.
+  This is a leak measurement; it is NOT an analyst result.
+driver
+financial_conditions      0.186
+sector_breadth            0.064
+inflation_expectations    0.051
+balance_sheet             0.036
+term_premium              0.032
+labor_tightness          -0.018
+risk_appetite            -0.023
+curve_slope              -0.028
+inflation                -0.062
+positioning              -0.068
+vol_regime               -0.147
+
+  median -0.018   max financial_conditions +0.186
+  Prereg prediction: risk_appetite should be largest (r7 RECALL-POTENT).
+
+==============================================================================
+C — panel independence per arm (lower mean_abs = more independent)
+==============================================================================
+      arm  n_drivers  pairs_scored  mean_abs_corr  dropped
+     none         11            36          0.111       19
+ anon_cue         11            36          0.097       19
+anon_full         11            36          0.091       19
+    plain         11            36          0.112       19
+
+  Prereg prediction: rises with text volume (none < anon_cue < anon_full).
+  Excludes nothing automatically — curve_slope/risk_appetite are a known
+  duplicate pair (both graded on the 2s10s slope, outcome corr +0.951).
+
+==============================================================================
+D — input attribution (anon_cue arm)
+==============================================================================
+                driver                    top_input  signed_weight  n_inputs  n_ignored  top_pull_agrees
+         balance_sheet            assets_change_52w         -0.263         8          0            1.000
+           curve_slope                slope_12m_low         -0.131        17          1            0.953
+  financial_conditions      nfci_distance_from_zero         -0.172        10          1            0.984
+             inflation       headline_3m_annualized          0.121        17          0            0.958
+inflation_expectations      be_distance_from_target         -0.073        10          0            0.977
+       labor_tightness unrate_distance_from_natural         -0.143        12          0            0.878
+           positioning           lev_fund_change_4w         -0.129         4          0            0.972
+         risk_appetite               curve_slope_bp         -0.186         3          0            0.945
+        sector_breadth  cyclical_minus_defensive_4w         -0.196         3          0            0.967
+          term_premium                dgs10_12m_low         -0.072        11          1            0.976
+            vol_regime                vix_change_4w         -0.069         3          0            0.987
+
+  top_pull_agrees: how often the heaviest-weighted input's pull matches the
+  stated direction. Low = the prose and the attribution disagree.
+
+==============================================================================
+CAVEATS THAT MUST TRAVEL WITH THESE NUMBERS
+==============================================================================
+  * Never pool an arm delta across drivers: excerpt coverage runs 0% (positioning)
+    to 100% (inflation), so a pooled number reports which drivers got text.
+  * positioning's anon_cue IS its none arm — 0% excerpt coverage by design.
+  * financial_conditions cue coverage is 56%; a null there is part artifact.
+  * anon_cue has no diff structure, so it is NOT comparable to the old cue legs.
+  * 44 IC cells + 55 correlation pairs: expect ~2 and ~3 at |t|>2 by chance.
+  * The post-2024 slice is ~17 obs. Descriptive only, no t-statistic.
+
+[saved] results/board/{qc,primary_ic,independence,attribution}.csv

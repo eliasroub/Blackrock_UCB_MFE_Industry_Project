@@ -1,0 +1,4 @@
+arm,stratum_def,n_A,ic_A,lo_A,hi_A,n_B,ic_B,lo_B,hi_B,A_minus_B,verdict
+anon_cue,identified_exact,256,0.224,0.1184,0.3342,525,0.2459,0.1586,0.3304,-0.0219,CLEAN-SKILL
+anon_full,identified_exact,255,0.1424,0.0308,0.252,527,0.1765,0.079,0.2716,-0.0342,CLEAN-SKILL
+plain,identified_exact,254,0.1697,0.0615,0.2791,528,0.1846,0.085,0.2731,-0.0149,CLEAN-SKILL

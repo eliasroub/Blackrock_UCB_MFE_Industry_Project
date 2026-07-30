@@ -1,0 +1,13 @@
+gate,arm,A_minus_B,verdict
+base,anon_cue,-0.022,CLEAN-SKILL
+base,anon_full,-0.034,CLEAN-SKILL
+base,plain,-0.015,CLEAN-SKILL
+drop curve_slope (66% ID rate),anon_cue,-0.05,CLEAN-SKILL
+drop curve_slope (66% ID rate),anon_full,0.019,CLEAN-SKILL
+drop curve_slope (66% ID rate),plain,0.022,CLEAN-SKILL
+exclude censored items,anon_cue,-0.091,CLEAN-SKILL
+exclude censored items,anon_full,-0.077,CLEAN-SKILL
+exclude censored items,plain,-0.071,CLEAN-SKILL
+quarter-level strata,anon_cue,0.054,CLEAN-SKILL
+quarter-level strata,anon_full,0.023,CLEAN-SKILL
+quarter-level strata,plain,-0.011,CLEAN-SKILL

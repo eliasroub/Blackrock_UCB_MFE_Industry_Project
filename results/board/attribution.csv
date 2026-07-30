@@ -1,0 +1,12 @@
+driver,top_input,signed_weight,n_inputs,n_ignored,top_pull_agrees
+balance_sheet,assets_change_52w,-0.263,8,0,1.0
+curve_slope,slope_12m_low,-0.131,17,1,0.953
+financial_conditions,nfci_distance_from_zero,-0.172,10,1,0.984
+inflation,headline_3m_annualized,0.121,17,0,0.958
+inflation_expectations,be_distance_from_target,-0.073,10,0,0.977
+labor_tightness,unrate_distance_from_natural,-0.143,12,0,0.878
+positioning,lev_fund_change_4w,-0.129,4,0,0.972
+risk_appetite,curve_slope_bp,-0.186,3,0,0.945
+sector_breadth,cyclical_minus_defensive_4w,-0.196,3,0,0.967
+term_premium,dgs10_12m_low,-0.072,11,1,0.976
+vol_regime,vix_change_4w,-0.069,3,0,0.987

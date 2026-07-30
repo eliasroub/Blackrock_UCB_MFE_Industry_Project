@@ -6,7 +6,11 @@ venv/
 .env
 .pytest_cache/
 .ipynb_checkpoints/
-reports/
+# Run artifacts are local by default — they are large and mostly scratch.
+# reports/hk/ is the exception: it is the committed Haiku validation board that the
+# PM layer replays, so it is versioned deliberately (~70 MB, 88 files).
+reports/*
+!reports/hk/
 .DS_Store
 .claude/
 results/anonymize/llm_cache/

@@ -13,6 +13,150 @@ measured).
 
 ## Preregistered (pending)
 
+### anon-recall-probe — preregistered 2026-07-30 (unrun)
+
+**Question.** The committed `fomc-recall-probe` measured identifiability of the
+**date-scrubbed** corpus: 75.1% quarter-level on whole statements, 40.1% on cue
+extracts, with a 0% post-cutoff anchor establishing that pre-cutoff identification is
+memorization rather than inference. It never measured `statements_anon.jsonl`, which
+is a different and much stronger treatment — the anonymizer rewrites named events
+("the COVID-19 pandemic" → "a global public-health crisis"), officials, and dateable
+programme names, not just calendar tokens.
+
+So the premise underneath every anonymized arm on this board is **untested**: we do
+not know whether anonymization defeats a strong model's recall. Without that, a null
+`plain` − `anon` result has two readings — recall does not help, or the anonymization
+never blocked it — and they have opposite consequences.
+
+**Design.** Identical to the committed probe in every respect the prereg locked:
+model `claude-sonnet-4-6` exactly, `temperature 0.0`, `max_tokens 300`, the same
+frozen prompt template, Message Batches API, deterministic local scoring. The **only**
+change is which bytes are probed.
+
+| arm | committed run | this run |
+|---|---|---|
+| `whole` | raw corpus, date-scrubbed by the selector | `statements_anon.jsonl` |
+| `cue` | `CueSelector` regex over the raw corpus | the pre-computed `excerpts_<driver>.jsonl` |
+
+The cue arm deliberately probes the **excerpt files** rather than running `CueSelector`
+over the anon corpus, because the excerpts are what the analysts were actually fed;
+probing the regex path would measure bytes no analyst ever saw. Placeholder excerpts
+("says nothing about this driver") are excluded — probing them would measure the
+placeholder. 1,679 items: 172 whole, 1,507 excerpt across 11 personas. The 7 FOMC
+macro drivers are directly comparable to the committed cue arm; the 4 equity personas
+are new and reported separately.
+
+**Primary metric.** Quarter-level top-1 identification accuracy per arm, pre-cutoff
+items only (`release_date` < 2026-02-01), equal weight per item — the same definition
+the committed run used, so the numbers sit side by side.
+
+**Decision rules (LOCKED), reusing the committed bands.**
+- **RECALL-SATURATED** if accuracy ≥ 50%. On the `whole` arm this would mean the
+  anonymizer does not defeat recall, and **every anonymized-arm result on this board
+  becomes recall-suspect** — the anon arms would not be the clean control they are
+  currently treated as.
+- **RECALL-RESISTANT** if accuracy ≤ 10%. Only this permits treating the anonymized
+  arms as a recall-free baseline, and it is what would license reading the null
+  `plain` − `anon_full` contrast as "recall does not help".
+- **PARTIAL** otherwise: the anonymization reduces but does not eliminate
+  identifiability, and the leak contrast is attenuated by an unknown amount.
+
+**Directional prediction, recorded before the run.** Anonymization should cut
+identifiability far below the date-scrubbed 75.1%, because the probe's own post-cutoff
+anchor showed the pure-inference floor is ~0%: with dates, officials, events and
+programme names all abstracted, little should remain to place a statement by. Predict
+`whole` in the RECALL-RESISTANT band (≤10%), i.e. a reduction of ≥65 percentage points.
+
+**What a surprise would mean.** If `whole` comes back ≥50%, the economic content alone
+identifies the period — a 9.1% CPI print pins its quarter regardless of preprocessing,
+exactly as `selector.py` has always conceded — and no text-channel preprocessing can
+fix it. That result would be more important than the leak test it was run to interpret.
+
+**Cost.** 1,679 items, ~531k input tokens ⇒ **≈$0.80 batched** (±25%). Scoring is $0
+and deterministic. Results write to `results/recall_probe_anon/` so the committed
+artifacts are never overwritten. Approved by the user 2026-07-30.
+
+**Peeking status.** Genuinely preregistered: no probe output exists for the anonymized
+corpus. The only numbers seen are item counts and a confirmation that 0 of 1,679 anon
+items contain a calendar token, which are inputs, not outcomes.
+
+### sonnet-leak-3driver — preregistered 2026-07-30 (unrun)
+
+**Question.** The Haiku board found no leak: `plain` minus `anon_full` came in at a
+median -0.018 IC across 11 analysts, and the preregistered recall-stratified test
+returned CLEAN-SKILL in all three arms. But memorization is a known property of
+LLMs and it scales with capability — this project's own ladder (Haiku 0.187 /
+Sonnet 0.340 / Opus 0.492 on inflation) is *consistent* with recall growing with
+model strength. Haiku may simply be too weak to exploit a memorised path. **Does the
+leak appear on a stronger model?**
+
+**Design.** `claude-sonnet-5`, two arms, three drivers, otherwise identical to the
+Haiku board: window 2016-01-01 to 2026-06-30, `--memory` on, `--max-tokens 2000`,
+news off.
+
+| arm | corpus | scrub |
+|---|---|---|
+| `anon_full` | `data/fomc/statements_anon.jsonl` | on |
+| `plain` | `data/fomc/documents.jsonl` | **off** |
+
+**Drivers, chosen on measured identifiability, not on outcome.** `curve_slope` —
+the recall probe measured its cue contexts at **73.4%** quarter-identifiable, the
+highest of any driver. `inflation` — the most-published macro path, the most
+plausibly memorised. `balance_sheet` — the strongest signal on the Haiku board
+(IC 0.695 anon_full) and the one the Fed announces in words. If recall helps
+anywhere, it is these three.
+
+**Primary metric.** Paired ΔIC = IC(`plain`) − IC(`anon_full`) per driver, on shared
+release dates, with a statement-clustered bootstrap interval.
+
+**Directional predictions, recorded before the run.**
+1. If recall drives skill: **ΔIC > 0**, and largest on `curve_slope`.
+2. If the Haiku null was a capability floor: ΔIC should be **materially larger on
+   Sonnet than the Haiku values it replicates** (Haiku: curve_slope −0.028,
+   inflation −0.062, balance_sheet +0.036).
+3. If the Haiku null was real: ΔIC ≈ 0 again, on a model with 3.5× the per-call
+   cost and a demonstrably higher IC ceiling.
+
+**Decision rules (LOCKED).**
+- **LEAK-ON-SONNET** iff ΔIC ≥ +0.10 on at least two of three drivers with a
+  bootstrap CI excluding zero. Only this verdict permits the claim that
+  de-anonymization carries recoverable period information at the analyst layer, and
+  it obliges every in-window Sonnet text-channel IC to quote the measured ΔIC as an
+  upper bound on how much could be recall.
+- **NO-LEAK-ON-SONNET** iff no driver reaches ΔIC ≥ +0.10 with a CI excluding zero.
+  This does **not** prove absence — see power.
+- **INDETERMINATE** otherwise.
+- The `plain` arm's IC is a leak measurement and may never be cited as an analyst
+  result, on this model or any other.
+
+**Power, stated honestly and before the fact.** n ≈ 124-126 per leg. On the Haiku
+board the paired ΔIC standard error implies a minimum detectable effect around
+**0.12**, so **a leak smaller than roughly 0.1 IC is invisible to this design and a
+null must not be reported as ruling one out.** Three drivers also means three tests;
+one |ΔIC| of 0.1 by chance is not surprising, which is why the rule requires two of
+three.
+
+**Confound, named rather than discovered.** `plain` vs `anon_full` is not purely a
+date contrast. The anonymizer rewrote rather than deleted, so it also drops the "For
+release at" boilerplate from 24 of 84 documents and "Implementation Note" from 28 of
+84. It does not touch the economic body, and boilerplate cannot explain a positive
+result, but the arm is "de-anonymized" rather than strictly "dated".
+
+**Untested premise, also named.** The committed `fomc-recall-probe` measured 75.1%
+identifiability on the **date-scrubbed** corpus, not on `statements_anon.jsonl`.
+Whether the anonymizer defeats a strong model's recall has never been measured, so a
+null here has two readings — recall does not help, or the anonymization never blocked
+it. Resolving that needs the probe re-run against the anon corpus (~$1.60 batched),
+which is deliberately **not** part of this entry.
+
+**Cost.** 376 observations x 2 arms = 752 calls at a measured ~$0.027/call on Sonnet
+with the current prompt ⇒ **≈$20** (±25%), ~25 min at 6-way. Approved by the user
+2026-07-30.
+
+**Peeking status.** Genuinely preregistered: no Sonnet output exists on either arm at
+this window. The Haiku values quoted in prediction 2 are from a different model and
+are the comparison, not a peek.
+
 ### analyst-4arm-haiku — preregistered 2026-07-29 (unrun)
 
 **Question.** The analyst layer varies exactly one thing: what text an analyst is
