@@ -22,6 +22,7 @@ is fully described by its persona file, so adding one is configuration.
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 import yaml
@@ -147,6 +148,33 @@ SUBMIT_VIEW_TOOL = {
                      "input_ranking", "direction", "conviction"],
     },
 }
+
+
+def ground_input_name(raw: str, names: set[str]) -> str | None:
+    """Resolve a model-supplied input name to a real feature name, or None.
+
+    Exact match first. The fallback exists because a measured 123 of 126 records on
+    one driver came back naming the *rendered prompt line* rather than the feature:
+
+        "breadth (share 0-1) — last 13 observations, oldest → newest"
+
+    instead of ``breadth``. That is the model copying what it was shown, which is a
+    reasonable thing for it to do, and a strict membership test dropped every one —
+    silently emptying the attribution for that analyst while leaving its view intact.
+    So the label prefix is accepted, anchored at a boundary the renderer actually
+    emits (" (" for the unit, " —" for the trailing observation count) so this cannot
+    turn into loose substring matching: an entry still has to *begin* with a real
+    feature name.
+
+    Returns the canonical name so downstream de-duplication keys on one spelling.
+    """
+    name = (raw or "").strip()
+    if not name:
+        return None
+    if name in names:
+        return name
+    head = re.split(r"\s+\(|\s+—|\s+--", name, maxsplit=1)[0].strip()
+    return head if head in names else None
 
 
 class LLMAnalyst:
@@ -461,8 +489,8 @@ class LLMAnalyst:
         for r in parsed.get("input_ranking") or []:
             if not isinstance(r, dict):
                 continue
-            name = str(r.get("input", "")).strip()
-            if name not in features.names:
+            name = ground_input_name(str(r.get("input", "")), features.names)
+            if name is None:
                 continue
             try:
                 w = min(1.0, max(0.0, float(r.get("weight", 0.0))))
