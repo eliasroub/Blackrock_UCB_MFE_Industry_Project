@@ -1,10 +1,11 @@
 """Vendored international-market series — no API key, no network.
 
-The six international analysts (`ea_rates`, `uk_rates`, `jp_rates`,
-`ea_equity`, `uk_equity`, `jp_equity`) read weekly Bloomberg Friday closes
-vendored at ``data/intl/INTL_*.csv``, exported from the sister repo's
-``total_assets_weekly.csv`` by ``scripts/build_intl_series.py`` (see the
-directory README for provenance and the series table).
+Weekly Bloomberg Friday closes vendored at ``data/intl/INTL_*.csv``, exported
+from the sister repo's ``total_assets_weekly.csv`` by
+``scripts/build_intl_series.py`` (see the directory README for provenance and
+the series table). The six international analysts that read them (ea/uk/jp x
+rates/equity) were removed in the US-only refocus; the data and this loader
+stay dormant for a possible revival.
 
 Same point-in-time contract as ``equity_local``, for a simpler reason: these
 are market closes, and a Friday close is observable on that same Friday — the

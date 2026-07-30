@@ -9,3 +9,4 @@ venv/
 reports/
 .DS_Store
 .claude/
+results/anonymize/llm_cache/

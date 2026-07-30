@@ -11,16 +11,16 @@
 display_name: "equity volatility regime (implied and realized S&P 500 volatility)"
 
 horizon:
-  # A weekly-native series: one Friday to the next is already non-overlapping at a
-  # one-step horizon, so no clock_freq resample is needed (unlike a daily series).
+  # Weekly-native series resampled to a monthly clock (clock_freq: ME = last value
+  # known by each month end) — the monthly backtest grades month-end to month-end.
   kind: fixed
   clock: EQ_VIX
   clock_freq: ME
-  label: "month end, roughly one month ahead"
-  approx_days: 31
+  label: "one month ahead (the last weekly close of the next month)"
+  approx_days: 30
 
 mandate:
-  - "Judge whether the equity volatility regime is rising or easing over the coming week, and how strongly."
+  - "Judge whether the equity volatility regime is rising or easing over the coming month, and how strongly."
   - "The graded measurement is vix_level: 'up' means implied volatility RISES (regime worsening)."
   - "Weigh the level of implied volatility, its gap to recently realized volatility, and its recent direction."
   - "Do not reason about other drivers or any trade — only equity volatility."
@@ -37,3 +37,9 @@ features:
 
 text_cues:
   - "equity volatility"
+
+# Anonymized, per-driver excerpt corpus (Haiku pass over the statement corpus;
+# see results/anonymize/ and src/run_anonymize.py). Use with --text-mode whole.
+# NOTE: text is NEW for this persona — r7 ran it features-only; any live run on
+# this corpus is a new input configuration.
+text_corpus: data/fomc/excerpts_vol_regime.jsonl

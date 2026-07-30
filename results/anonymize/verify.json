@@ -1,0 +1,79 @@
+{
+  "pass1": {
+    "docs": 172,
+    "missing_docs": [],
+    "order_matches": true,
+    "date_hit_docs": 0,
+    "date_hits": {},
+    "length_ratio_out_of_band": {},
+    "percent_token_survival": 0.9969
+  },
+  "pass2": {
+    "balance_sheet": {
+      "rows": 172,
+      "nonempty": 126,
+      "verbatim_rate": 0.953,
+      "date_hits": 0
+    },
+    "curve_slope": {
+      "rows": 172,
+      "nonempty": 167,
+      "verbatim_rate": 0.932,
+      "date_hits": 0
+    },
+    "financial_conditions": {
+      "rows": 172,
+      "nonempty": 109,
+      "verbatim_rate": 0.995,
+      "date_hits": 0
+    },
+    "inflation": {
+      "rows": 172,
+      "nonempty": 172,
+      "verbatim_rate": 0.978,
+      "date_hits": 0
+    },
+    "inflation_expectations": {
+      "rows": 172,
+      "nonempty": 155,
+      "verbatim_rate": 0.947,
+      "date_hits": 0
+    },
+    "labor_tightness": {
+      "rows": 172,
+      "nonempty": 169,
+      "verbatim_rate": 0.964,
+      "date_hits": 0
+    },
+    "positioning": {
+      "rows": 172,
+      "nonempty": 0,
+      "verbatim_rate": null,
+      "date_hits": 0
+    },
+    "risk_appetite": {
+      "rows": 172,
+      "nonempty": 172,
+      "verbatim_rate": 0.973,
+      "date_hits": 0
+    },
+    "sector_breadth": {
+      "rows": 172,
+      "nonempty": 157,
+      "verbatim_rate": 0.984,
+      "date_hits": 0
+    },
+    "term_premium": {
+      "rows": 172,
+      "nonempty": 110,
+      "verbatim_rate": 0.954,
+      "date_hits": 0
+    },
+    "vol_regime": {
+      "rows": 172,
+      "nonempty": 170,
+      "verbatim_rate": 0.984,
+      "date_hits": 0
+    }
+  }
+}

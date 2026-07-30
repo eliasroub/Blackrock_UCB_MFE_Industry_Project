@@ -1,7 +1,7 @@
 """The nowcast news channel: point-in-time, windowed, date-blind, and off by default.
 
 Mirrors test_intl_text.py's shape — plumbing checks that always run, since
-data/news/nowcast_2023_2025.json ships vendored rather than fetched.
+data/news/nowcast_2024_2025.json ships vendored rather than fetched.
 """
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ from src.layered.text.nowcast import NowcastNewsSelector
 from src.layered.text.selector import _DATE_PATTERNS
 
 REPO = Path(__file__).resolve().parents[1]
-NEWS_PATH = REPO / "data" / "news" / "nowcast_2023_2025.json"
+NEWS_PATH = REPO / "data" / "news" / "nowcast_2024_2025.json"
 
 
 def test_corpus_parses_and_is_point_in_time():

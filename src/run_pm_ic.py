@@ -184,9 +184,9 @@ def main():
     # Only for pods that declare a `trade:` block; a driver-space-only pod has no
     # instrument leg to score and must not be made to look as though it abstained.
     if pm.trade_config:
-        # Prefix-dispatching loader (EQ_/INTL_/FRED) so cross-market universes
-        # like global_rv's [DGS10, INTL_DE10Y, ...] are priceable; pure-FRED
-        # universes load exactly as before.
+        # Prefix-dispatching loader (EQ_/INTL_/FRED) so a cross-market universe
+        # ([DGS10, INTL_DE10Y, ...]-style) is priceable; pure-FRED universes
+        # load exactly as before.
         from src.data.equity_local import load_any_bundle as load_bundle
 
         instruments = list(pm.trade_config.get("universe") or [])

@@ -11,11 +11,11 @@ horizon:
   kind: fixed
   clock: EQ_BREADTH_PCT
   clock_freq: ME
-  label: "month end, roughly one month ahead"
-  approx_days: 31
+  label: "one month ahead (the last weekly close of the next month)"
+  approx_days: 30
 
 mandate:
-  - "Judge whether market breadth is broadening or narrowing over the coming week, and how strongly."
+  - "Judge whether market breadth is broadening or narrowing over the coming month, and how strongly."
   - "The graded measurement is breadth: 'up' means MORE sectors participate (breadth RISES)."
   - "Weigh how many sectors trade above trend, the cyclical-vs-defensive tilt, and cross-sector dispersion."
   - "Do not reason about other drivers or any trade — only sector rotation and breadth."
@@ -32,3 +32,9 @@ features:
 
 text_cues:
   - "sector rotation"
+
+# Anonymized, per-driver excerpt corpus (Haiku pass over the statement corpus;
+# see results/anonymize/ and src/run_anonymize.py). Use with --text-mode whole.
+# NOTE: text is NEW for this persona — r7 ran it features-only; any live run on
+# this corpus is a new input configuration.
+text_corpus: data/fomc/excerpts_sector_breadth.jsonl

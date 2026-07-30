@@ -1,7 +1,11 @@
-# Equities pod — global equity direction: US internals + euro-area/UK/Japan.
+# Equities pod — US equity direction from the market-internals panel.
 # See _TEMPLATE.yaml for the full field-by-field contract.
 #
 # Axis (declared, never fitted): UPWARD PRESSURE ON EQUITY PRICES (+1 = risk-on).
+#
+# US-only: the three regional analysts (ea/uk/jp equity) were removed in the
+# US-only refocus — this pod now arbitrates the four r7 internals analysts.
+# Their vendored data and corpora stay in data/ for a possible revival.
 #
 # NO trade: block, deliberately. The shipped P&L grader is yield-space
 # (sum(w * dy) in percentage points — evaluation/trade_pnl.py); equity index
@@ -9,11 +13,8 @@
 # returns-space grader first (follow-up). Omitting `trade:` drops the trade
 # property from the submit tool cleanly — this pod arbitrates the equity panel
 # in driver space, which is exactly what ic_pm measures.
-#
-# The three regional analysts arrive from the intl layer (INTL_* series +
-# ECB/BoE/BoJ statement corpora); the four US analysts are the r7 equity set.
 
-display_name: "Equities — global direction from US internals and regional panels"
+display_name: "Equities — US direction from the market-internals panel"
 
 clock_freq: ME
 
@@ -34,28 +35,19 @@ listens_to:
     polarity: +1            # curve_slope_bp up = steepening = growth-positive
   positioning:
     polarity: +1            # asset_mgr_z up = managers add net longs = risk-on flow
-  ea_equity:
-    polarity: +1            # stoxx_level up = European equities rise
-  uk_equity:
-    polarity: +1            # ftse_level up = UK equities rise
-  jp_equity:
-    polarity: +1            # msci_jp_level up = Japan equities rise — NOTE: graded in
-                            # USD, so this driver mixes Japanese equities and the yen
-                            # (the analyst's mandate says so; weigh accordingly)
 
 reads: all
 
 mandate:
-  - "Judge whether equities rise or fall over the horizon, globally and by region."
-  - "Weigh the US market-internals panel (breadth, volatility regime, positioning, risk appetite) against the three regional analysts' own-market reads."
-  - "Internals and regional direction disagreeing is the interesting case: say which you trust and why, per region."
-  - "Regional views are graded in local terms except Japan (USD) — do not treat the Japan read as a pure equity view without checking what the yen contributed."
+  - "Judge whether US equities rise or fall over the horizon."
+  - "Weigh the four internals analysts against each other: breadth and positioning are participation and flow; the volatility regime and risk appetite are the price of risk."
+  - "Internals disagreeing is the interesting case: narrowing breadth under a calm vol regime, or crowded positioning against fading risk appetite — say which panel you trust and why."
 
 weighing:
-  staleness:    "A STALE internals read (breadth, vol) decays fast — these are weekly measurements; discount them harder than a stale regional view."
-  disagreement: "US internals and regional analysts can disagree because they measure different things — breadth narrowing while Europe rallies is a real configuration, not noise to average away."
-  gaps:         "Use the missing-inputs graph: the regional analysts never see US internals, and the US panel never sees regional prints — you are the only seat holding both."
-  override:     "Override an analyst only where the cross-region read changes the picture; never re-litigate a regional analyst's own-market evidence from the US panel alone."
+  staleness:    "A STALE internals read (breadth, vol) still decays — the panel is graded on a monthly clock; discount a view that has missed a month-end."
+  disagreement: "The four panels measure different things — participation, flow, and the price of risk can genuinely diverge; that configuration is information, not noise to average away."
+  gaps:         "Use the missing-inputs graph: each analyst sees only its own panel — you are the only seat holding all four."
+  override:     "Override an analyst only where the cross-panel read changes the picture; never re-litigate an analyst's own-panel evidence from another panel alone."
 
 # risk_tags without a trade block would be unreachable (they live in trade.risk_tags),
 # so none are declared here until the returns-space grader lands.

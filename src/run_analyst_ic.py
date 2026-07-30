@@ -54,10 +54,10 @@ def main():
                          "its own last call against the release that scored it")
     ap.add_argument("--news", action="store_true",
                     help="add the shared market-nowcast channel: the target week plus "
-                         "the two weeks before it (data/news/nowcast_2023_2025.json), "
+                         "the two weeks before it (data/news/nowcast_2024_2025.json), "
                          "identical for every analyst. Off by default.")
     ap.add_argument("--news-path", default=None,
-                    help="override the nowcast file (default: data/news/nowcast_2023_2025.json)")
+                    help="override the nowcast file (default: data/news/nowcast_2024_2025.json)")
     ap.add_argument("--perturb", default=None, choices=ANALYST_NAMES,
                     help="evaluation-only leak/robustness arm: rewrite the evidence "
                          "before the call (see src.layered.perturb). Off = shipped path.")
