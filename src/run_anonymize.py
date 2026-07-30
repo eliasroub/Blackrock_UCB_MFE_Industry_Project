@@ -82,14 +82,22 @@ EQUITY_SPECS = {
         "  exports, services — and whether strength or weakness is described as broad-based\n"
         "  versus concentrated in particular sectors."
     ),
+    # Deliberately narrow: FOMC statements almost never discuss investor
+    # behavior, so an empty extraction is the NORMAL outcome for this analyst —
+    # the rare hit is high-signal precisely because it is rare. The Fed's own
+    # purchases/runoff ("increase its holdings of...") are the balance_sheet
+    # analyst's turf, NOT positioning: different actor holding the assets.
     "positioning": (
         "- name: positioning\n"
         "  specialty: S&P 500 futures positioning and investor crowding\n"
         "  mandate: Judges whether asset managers add or unwind net longs over the coming week.\n"
-        "  relevant passages: forward guidance and the policy path — pace and timing language\n"
-        "  ('patient', 'gradual', 'some further firming', 'for some time'); asset purchase or\n"
-        "  runoff announcements and pace changes; surprises or commitments that would trigger\n"
-        "  portfolio repositioning and flows."
+        "  relevant passages: ONLY language about investors' own behavior — investor\n"
+        "  positioning, leverage, speculative activity, risk-taking, stretched or elevated\n"
+        "  valuations, crowding, or unusual market flows. NOT the Committee's own asset\n"
+        "  purchases, holdings, or runoff (those belong to another analyst), and NOT\n"
+        "  ordinary policy guidance. Most statements contain nothing for this analyst —\n"
+        "  an empty list is the expected outcome unless the document explicitly discusses\n"
+        "  investor behavior."
     ),
     "risk_appetite": (
         "- name: risk_appetite\n"
@@ -308,7 +316,9 @@ def run_pass(
 
     ``request_fn(doc) -> (system, user, tool)``; ``complete_fn(system, user,
     tool) -> dict`` (the parsed tool input). Docs already journaled are skipped
-    (the disk cache additionally makes any repeated API call free). Returns
+    — keyed on doc_id ONLY, so after changing a prompt or roster you must
+    delete the pass's journal or the change is silently masked (the disk cache
+    is prompt-keyed and handles this correctly; the journal does not). Returns
     ``{doc_id: error}`` for docs that failed after the client's own retries.
     ``cap_fn`` is polled after every completion; a True return aborts the pass.
     """

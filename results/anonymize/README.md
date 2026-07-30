@@ -19,5 +19,10 @@ in `data/fomc/` (`statements_anon.jsonl`, `excerpts_<persona>.jsonl`).
 - `llm_cache/` — gitignored AnthropicClient disk cache (belt to the results
   files' suspenders).
 
-Total spend: ≈ $2.11 (macro passes ≈ $1.37 est. $1.47; equity pass $0.74).
-Rerunning any subcommand is $0 unless `documents.jsonl` or the prompts change.
+Cost to reproduce from scratch: ≈ $2.01 (per spend.json — latest run of each
+pass). Cumulative project spend on this pipeline: ≈ $2.75 (includes one
+superseded equity run whose positioning spec routed the Fed's own holdings —
+wrong actor — before being narrowed to investor behavior only). Rerunning any
+subcommand is $0 unless `documents.jsonl` or the prompts change; after a
+prompt/roster change, delete that pass's journal first (done-doc skipping is
+keyed on doc_id only).

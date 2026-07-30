@@ -8,7 +8,7 @@
     "output_tokens": 94904,
     "est_cost_usd": 0.8195
   },
-  "total_usd": 2.1091,
+  "total_usd": 2.0088,
   "pass2": {
     "model": "claude-haiku-4-5-20251001",
     "calls": 172,
@@ -20,8 +20,8 @@
     "calls": 172,
     "cached_calls": 0,
     "retries": 0,
-    "input_tokens": 337160,
-    "output_tokens": 80491,
-    "est_cost_usd": 0.7396
+    "input_tokens": 343008,
+    "output_tokens": 59265,
+    "est_cost_usd": 0.6393
   }
 }
