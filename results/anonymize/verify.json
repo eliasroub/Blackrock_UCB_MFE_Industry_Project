@@ -45,10 +45,34 @@
       "verbatim_rate": 0.964,
       "date_hits": 0
     },
+    "positioning": {
+      "rows": 172,
+      "nonempty": 0,
+      "verbatim_rate": null,
+      "date_hits": 0
+    },
+    "risk_appetite": {
+      "rows": 172,
+      "nonempty": 172,
+      "verbatim_rate": 0.973,
+      "date_hits": 0
+    },
+    "sector_breadth": {
+      "rows": 172,
+      "nonempty": 157,
+      "verbatim_rate": 0.984,
+      "date_hits": 0
+    },
     "term_premium": {
       "rows": 172,
       "nonempty": 110,
       "verbatim_rate": 0.954,
+      "date_hits": 0
+    },
+    "vol_regime": {
+      "rows": 172,
+      "nonempty": 170,
+      "verbatim_rate": 0.984,
       "date_hits": 0
     }
   }

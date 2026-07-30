@@ -35,3 +35,9 @@ features:
 
 text_cues:
   - "risk appetite"
+
+# Anonymized, per-driver excerpt corpus (Haiku pass over the statement corpus;
+# see results/anonymize/ and src/run_anonymize.py). Use with --text-mode whole.
+# NOTE: text is NEW for this persona — r7 ran it features-only; any live run on
+# this corpus is a new input configuration.
+text_corpus: data/fomc/excerpts_risk_appetite.jsonl

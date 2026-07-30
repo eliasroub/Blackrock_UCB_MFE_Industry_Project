@@ -21,9 +21,18 @@ temperature 0.0, forced tool calls; run artifacts + verify report in
   decision, and the hawkish/dovish wording are preserved verbatim
   (`verify`: 0 date hits, 99.7% percent-token survival, length ratios all
   within [0.7, 1.2]).
-- `excerpts_<persona>.jsonl` (×7) — per-analyst routing of the anonymized
-  statements: for each of the 7 FOMC text personas, the verbatim passages of
-  each statement relevant to that persona's mandate (93–99% verbatim rate).
+- `excerpts_<persona>.jsonl` (×11) — per-analyst routing of the anonymized
+  statements: for each of the 7 FOMC macro personas and the 4 US equity
+  internals personas, the verbatim passages of each statement relevant to
+  that persona's mandate (93–99% verbatim rate; the equity personas' relevance
+  definitions are the curated blocks in `run_anonymize.py` — their YAML cues
+  are placeholders from the features-only r7 design, and text is a NEW input
+  for them). `excerpts_positioning.jsonl` is deliberately an all-placeholder
+  channel on statements: its routing is narrowly "investors' own behavior"
+  (leverage, valuations, speculation — NOT the Fed's holdings, which are
+  balance_sheet's turf), and a regex sweep confirms no statement in the
+  corpus contains such language (it lives in the minutes/FSR). The channel
+  becomes live if the minutes are anonymized later.
   One row per source statement; when a statement says nothing about the
   driver, `text` is the selector's empty-context placeholder so `as_of` stays
   aligned meeting-by-meeting. Wired via each persona's `text_corpus:` field;
