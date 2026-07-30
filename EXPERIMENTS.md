@@ -468,6 +468,44 @@ run, separately approved.
 
 ## Experiment log (newest first)
 
+### pm-3arm-sonnet stage 1 — RUN 2026-07-30, verdict same day
+
+**Setup.** As preregistered: same 3 arms × 5 pods on the anon_cue board,
+`claude-sonnet-5`, stage-1 window 2021-07 → 2026-06 (n=60). Interrupted mid-sweep
+by the workspace monthly API cap (629/900 meetings, $27.47); completed same day on
+the user's personal key at low concurrency ($11.94, 271 retried calls — cached
+meetings replayed byte-identical, so the interruption cannot have changed any
+recorded answer). Total ≈$39.4 vs the $38 estimate. Validity: 12/900 degraded,
+worst leg 3.3% (gate 10%) — all 15 legs VALID.
+
+**Rule 1 — rates pods: NO-EDGE, 12/12 — but the sign structure flipped.** Mean
+d_ic now −0.015 to +0.062 (Haiku: −0.003 to −0.228, all negative); 7/12 cells
+positive. The single sign-consistent cell (real/full, +0.018) fails the t gate
+decisively (block-bootstrap paired t = +0.36 vs the locked 2.0). **Prediction 1
+confirmed:** Sonnet does not destroy balance_sheet (d_ic −0.02 to +0.10 across
+arms vs Haiku's −0.38 to −0.57 everywhere).
+
+**Rule 2 — equities: NO arm adds value.** Mapped Sharpes: full −0.64, conv −0.66,
+raw −0.39 vs board_mean −0.64 (best p_boot 0.29, raw); ridge +0.61 on its 23
+scored months (preregistered as nearly uninformative at this n). **Prediction 4
+confirmed.**
+
+**Predictions 2, 3 confirmed as well — 4/4:** full−conv differences are
+insignificant everywhere (equities −0.64 vs −0.66); and the sizing result
+replicates in every arm — the PM's own SPY trade beats the mechanical map of its
+own convictions (raw trade +0.08 vs −0.39 mapped; full −0.45 vs −0.64;
+conv −0.43 vs −0.66).
+
+**Verdict.** NO-EDGE under the locked rules at stage-1 power — but the
+model-quality gradient is now measured, not assumed: Haiku's PM seat was
+value-DESTROYING (12/12 negative), Sonnet's is value-NEUTRAL (7/12 positive,
+none significant). The ambiguity the Haiku entry recorded is half-resolved:
+arbitration quality does scale with the model; whether it scales past zero needs
+n — which is exactly what preregistered stage 2 (full window, ≈$21 incremental,
+cached stage-1 meetings free) exists to answer. The sizing/abstention finding
+has now replicated across two models and 30 pod-arms; it is the strongest
+pattern this experiment family has produced.
+
 ### pm-3arm-haiku — RUN 2026-07-30, verdict same day
 
 **Setup.** As preregistered (entry above): 5 pods × {full, conv, raw} on the
