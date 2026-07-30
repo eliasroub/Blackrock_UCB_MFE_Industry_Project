@@ -157,7 +157,12 @@ with the current prompt ⇒ **≈$20** (±25%), ~25 min at 6-way. Approved by th
 this window. The Haiku values quoted in prediction 2 are from a different model and
 are the comparison, not a peek.
 
-### analyst-4arm-haiku — preregistered 2026-07-29 (unrun)
+### analyst-4arm-haiku — preregistered 2026-07-29 (RUN — results entry pending)
+
+> **Status 2026-07-30:** the run landed — `reports/hk/`, 11 personas × 4 arms,
+> 5,528 records, commit 9740753 / PR #28. The results entry and verdicts against
+> the locked rules below are Elias's to file; nothing here has been re-tuned. The
+> `pm-3arm-haiku` entry below consumes the `_anon_cue` legs as its board.
 
 **Question.** The analyst layer varies exactly one thing: what text an analyst is
 fed. Four arms over the same 11 personas, same window, same model, same features.
@@ -269,6 +274,104 @@ in one table.
 The numbers seen so far are excerpt coverage counts and rendered prompt lengths,
 which are inputs, not outcomes.
 
+### pm-3arm-haiku — preregistered 2026-07-30 (RUN same day — verdict in the log)
+
+**Question.** The PM layer varies exactly one thing: what a PM is shown. Three LLM
+arms over the same 5 pods, same board (`reports/hk`, `_anon_cue` legs only), same
+monthly calendar, same model. Does analyst *reasoning* add value over bare
+convictions (full − conv), does the analyst layer add value over handing the PM the
+raw measurements (conv − raw), and does the LLM add value over arithmetic at all
+(every arm vs the mechanical PM and the no-PM baselines)?
+
+**Model, and what it changes about the claim.** `claude-haiku-4-5-20251001` — the
+SAME model as the analysts, chosen deliberately: this prices the *layered structure*
+with cheap models everywhere, not a smart PM over a cheap crowd. Two consequences,
+accepted up front: (a) **a null is ambiguous** — it cannot distinguish "arbitration
+is worthless" from "this model is too weak to arbitrate"; only a positive result is
+cleanly interpretable. (b) **No comparison to the Sonnet-5 PM benchmarks** in
+docs/pm-layer.md — different model, different experiment. The valid comparisons are
+all within-run: arm vs arm, arm vs mechanical, arm vs board_mean/ridge.
+
+**Arms** (memory OFF everywhere, so meetings are independent and the raw arm needs
+no memory port; `--llm-cache` on, so reruns are $0):
+
+| arm | brief | flag | what its delta prices |
+|---|---|---|---|
+| `full` | 11 reports + falsifier + evidence + gaps + attribution | `--include-input-ranking` | full − conv = the prose |
+| `conv` | call, conviction, freshness only | `--no-reports` | conv − raw = the analyst layer |
+| `raw`  | 11 rendered FeatureSets, no analysts | `src.run_pm_raw` | raw − mech = the LLM |
+| `mech` | consensus arithmetic, no model | `src.run_pm_mechanical` | the $0 floor |
+
+**Pods (5).** duration, curve, front_end, real (rates; yield-space trade P&L);
+equities (driver space + a returns-space single-leg SPY trade, new this run).
+
+**Primary metrics.**
+- **Rates pods:** within-driver `d_ic` from `pm_bench.benchmark` — PM conviction IC
+  minus that driver's own-analyst IC, on shared meeting dates, n and t reported.
+- **Equities pod:** annualized S&P excess Sharpe of the mapped position
+  (`sp_score.positions_from_convictions`: polarity-oriented mean, clip [-1,1] —
+  identical map for every arm and baseline), graded on monthly SPTR excess returns.
+
+**Secondary, descriptive.** The PM's own sized SPY trade (`<arm> (trade)` rows) vs
+the mechanical map of the same arm's convictions — sizing skill, not view quality.
+Yield-space trade P&L per rates pod vs the mechanical trade. Decision-divergence
+between full and conv (how often the two briefs change the call at all).
+
+**Directional predictions, recorded before the run.**
+1. **conv ≈ mech.** Given only signed convictions, a Haiku PM has little to add
+   over the consensus blend; predict |d_ic| differences insignificant.
+2. **full − conv is small and not significant at n≈126.** The prose either barely
+   moves decisions or moves them symmetrically; the divergence rate (secondary) is
+   the more informative number.
+3. **raw underperforms conv on driver ICs** — one context holding 11 panels is the
+   configuration the partitioned analyst layer exists to avoid.
+4. **Equities: no LLM arm beats board_mean at p_boot < 0.05.** The internals panel
+   is 4 drivers; the map is a mean of 4 numbers; the PM's room to add value is thin.
+
+**Decision rules (LOCKED).**
+1. **Rates pods:** an arm "helps" a pod iff its `d_ic` is sign-consistent across the
+   pod's drivers AND the paired t on shared dates ≥ 2.0. Anything else is NO-EDGE.
+2. **Equities:** an arm "adds value" iff its mapped-position Sharpe exceeds BOTH
+   board_mean and ridge, with `sharpe_diff_test` p_boot < 0.05 on the board_mean
+   comparison. The ridge comparison is reported, never gating (ridge is fitted to
+   outcomes; the PMs are not).
+3. **Validity:** a pod-arm is VOID if >10% of its meetings degrade; degraded counts
+   are always reported alongside every table.
+4. **The raw arm never enters a report-arm table without its arm label** — it reads
+   a different information set and a mixed table would present that as one PM.
+5. One verdict per pod-family per commit; no re-tuning after a rule fires.
+
+**Preregistered constants.** Position map = polarity-oriented mean clipped [-1,1];
+ridge α = 1.0, warmup = 36 realized pairs; bootstrap block = 6, n_boot = 2000,
+seed 0; rf = DGS1MO at prior month-end /100/12; SPTR from the sibling repo's
+`total_assets_weekly.csv` (source of truth, read-only); `--max-tokens 3000`.
+
+**Multiplicity.** 5 pods × 3 arms = 15 primary cells (rates: 4 pods × 3 d_ic
+verdicts; equities: 3 arms × 2 paired tests). Expect ≈1 |t|≥2 by chance; read sign
+consistency across pods, not individual stars.
+
+**Power, stated honestly.** n≈126 monthly meetings. SE of an annualized Sharpe
+≈0.31; the PAIRED tests recover power only where arms actually disagree — if full
+and conv agree on >90% of months, no Sharpe test at this n can separate them and
+the divergence rate is reported instead of a verdict.
+
+**Implementation locks.**
+- Board legs: `reports/hk/<driver>_anon_cue.jsonl` only; identity check ON. The
+  `plain` legs never feed a PM (leak arm, per analyst-4arm-haiku rule 3).
+- Outputs: `reports/hkpm/<pod>_{full,conv,raw,mech}.jsonl` (+ meta), committed.
+- Arm flags recorded in each run's meta (`include_reports`,
+  `include_input_ranking`, `kind: raw/mechanical`).
+- **Cost.** ≈1,890 Haiku calls: full ≈$13, conv ≈$7, raw ≈$11 → **≈$30 (±30%)**;
+  mechanical and all baselines $0. Explicit spend approval given 2026-07-30 with
+  the model choice; re-confirm if the pilot-refined estimate exceeds $45.
+
+**Peeking status.** No LLM PM output exists on any arm. The mechanical runs and the
+$0 baselines (board_mean, ridge, buy_hold) will be computed BEFORE the LLM runs as
+harness validation; their values are baselines named in the locked rules, and
+seeing them changes no rule. The analyst-4arm results (Elias's board) have been
+seen only as file counts and config metas here — their ICs are a separate entry's
+business.
+
 ### recall-stratified-ic — analysis plan preregistered 2026-07-22 (binds a future run)
 
 **Purpose.** The accepted position ("live with the look-ahead bias") gets one
@@ -313,6 +416,59 @@ share the text).
 run, separately approved.
 
 ## Experiment log (newest first)
+
+### pm-3arm-haiku — RUN 2026-07-30, verdict same day
+
+**Setup.** As preregistered (entry above): 5 pods × {full, conv, raw} on the
+`_anon_cue` board, `claude-haiku-4-5-20251001`, memory off, 126 monthly meetings,
+plus the $0 baselines. 1,890 LLM calls, ≈$25 all-in (under the $30 estimate).
+Runs + metas committed at `reports/hkpm/`.
+
+**Validity.** All 15 pod-arms valid. 10/1,890 meetings degraded (worst pod-arm
+4.8%, gate 10%). Disclosure: the first raw-arm pass degraded up to 15% on one pod
+because the model serialised its driver array as a string containing `+0.75`-style
+numbers (invalid JSON). Fixed at the PARSE layer (`_loads_tolerant` in llm_pm),
+applied uniformly to every arm, and all 15 runs were replayed **from the disk
+cache** — 0 new API calls, same raw responses, so this is recovery of recorded
+answers, not re-tuning.
+
+**Rule 1 — rates pods (LOCKED: sign-consistent d_ic AND paired t ≥ 2.0).**
+**NO-EDGE, all 4 pods × 3 arms.** Every mean d_ic is negative (range −0.003 to
+−0.228); no pod-arm has sign-consistent positive d_ic (the one consistent row,
+real/raw, is consistently negative). Recurring failure: `balance_sheet` — the
+panel's best analyst (IC 0.655, t 9.6 in duration) is arbitrated down to ≈0.09 by
+the PM in every arm. The Haiku PM subtracts information from its own specialists.
+
+**Rule 2 — equities (LOCKED: Sharpe > board_mean AND > ridge, p_boot < .05).**
+**NO arm adds value.** Mapped-position Sharpes: full −0.51, conv −0.56, raw −0.44
+vs board_mean −0.45, ridge +0.25, buy_hold +0.86. No arm clears either bar;
+`conv` is significantly WORSE than board_mean (p_boot = 0.042) — arbitration
+actively destroyed value in the conviction-only arm. raw ≈ board_mean (p 0.98).
+
+**Prediction scorecard** (recorded pre-run): 1. conv ≈ mech — close (conv
+slightly worse). 2. full − conv small/insignificant — CONFIRMED, with the
+sharper finding that the prose moves the *decisions* substantially (full-vs-conv
+mapped-position sign agreement 68–89% across pods) without moving the *results*.
+3. raw underperforms conv on driver ICs — confirmed on 3 of 4 rates pods;
+on equities raw was the least-bad arm. 4. no equities arm beats board_mean —
+CONFIRMED.
+
+**Secondary, descriptive (no verdicts).** (a) The PM's own sized SPY trade beat
+the mechanical map of its own convictions in every LLM arm (full trade −0.03 vs
+mapped −0.51): Haiku's *sizing/abstention* added value even where its *views* did
+not — the PMs frequently chose flat. (b) Yield-space trade P&L is noise-shaped:
+1 of 12 cells at |t|>2 (curve_conv +3.22) sitting next to the same pod's raw arm
+at −2.10; the multiplicity clause said to expect exactly this. (c) Internals
+board_mean itself is −0.45 Sharpe over a decade in which buy_hold made +0.86 —
+the analyst layer's equity views, not just the PM, are the binding problem.
+
+**Verdict.** Under the preregistered rules: the all-Haiku PM layer adds no
+measurable value over mechanical aggregation, in driver space or in S&P returns
+space, on any pod or arm. Per the model-choice caveat recorded up front, this
+null CANNOT distinguish "arbitration is worthless" from "Haiku is too weak to
+arbitrate" — a Sonnet PM on the same board remains the natural follow-up and is
+NOT licensed by this entry. The one positive, hypothesis-generating signal is
+the sizing/abstention result in (a).
 
 ### fomc-recall-probe — RUN 2026-07-22, verdict same day
 

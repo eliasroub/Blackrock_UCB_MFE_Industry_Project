@@ -120,8 +120,11 @@ def main():
     print("\n[note] ic_pm here should track ic_mech: both are the consensus blend, one "
           "computed in the run, one in the grader. The point of this run is the TRADE below.")
 
-    if pm.trade_config:
-        from src.data.fred_local import load_bundle
+    if str(pm.trade_config.get("space", "")).strip().lower() == "return":
+        print("\n[note] returns-space trade block — scored by src.run_sp_score, "
+              "not by the yield-space grader.")
+    elif pm.trade_config:
+        from src.data.equity_local import load_any_bundle as load_bundle
         instruments = list(pm.trade_config.get("universe") or [])
         try:
             trades = load_trades(args.out, pm.trade_config)

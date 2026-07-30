@@ -46,6 +46,24 @@ def test_equities_pod_is_us_only():
         "sector_breadth", "vol_regime", "risk_appetite", "positioning"}
 
 
-def test_equities_pod_has_no_trade_property():
+def test_equities_pod_trades_a_single_returns_space_spy_leg():
+    """The pod's trade block is RETURNS-space — the promised follow-up to the old
+    'NO trade' rationale (this test previously pinned trade_config falsy). A single
+    SPY leg, and `space: return` so the tool never describes an equity weight in
+    yield semantics and the runners route scoring to sp_score, not trade_pnl."""
     pm = build_pm("equities", None)
-    assert not pm.trade_config
+    cfg = pm.trade_config
+    assert cfg["universe"] == ["SPY"]
+    assert cfg["max_legs"] == 1
+    assert cfg["space"] == "return"
+
+
+def test_returns_space_leg_description_never_says_yield():
+    from src.layered.pm.llm_pm import submit_arbitration_tool
+
+    pm = build_pm("equities", None)
+    tool = submit_arbitration_tool(pm.listens_to, trade=pm.trade_config,
+                                   reads=pm.listens_to)
+    desc = (tool["input_schema"]["properties"]["trade"]["properties"]
+            ["legs"]["items"]["properties"]["weight"]["description"])
+    assert "RETURN" in desc and "YIELD" not in desc

@@ -287,16 +287,27 @@ def submit_arbitration_tool(drivers: list[str], trade: Optional[dict] = None,
         tags = [str(t) for t in (trade.get("risk_tags") or [])]
         if tags:
             props["risks"]["items"]["properties"]["tag"]["enum"] = tags
+        # Which space the leg weights live in is declared by the pod (`trade.space`),
+        # for the same reason `answer_space` is: telling the model yield semantics for
+        # an equity instrument would make every weight it emits mean the wrong thing,
+        # and the grader (sp_score for `return`, trade_pnl otherwise) reads this key's
+        # consequences too.
+        if str(trade.get("space", "")).strip().lower() == "return":
+            weight_desc = ("Signed exposure to that instrument's next-period RETURN: "
+                           "positive = long, negative = short, magnitude = size. The "
+                           "trade is scored as the weighted sum of returns.")
+        else:
+            weight_desc = ("Signed weight on that instrument's YIELD. The trade is "
+                           "scored as the weighted sum of yield changes, so a "
+                           "steepener is negative on the short leg and positive on "
+                           "the long one.")
         leg = {
             "type": "object",
             "properties": {
                 "instrument": {"type": "string"},
                 "weight": {
                     "type": "number", "minimum": -1.0, "maximum": 1.0,
-                    "description": ("Signed weight on that instrument's YIELD. The "
-                                    "trade is scored as the weighted sum of yield "
-                                    "changes, so a steepener is negative on the short "
-                                    "leg and positive on the long one."),
+                    "description": weight_desc,
                 },
             },
             "required": ["instrument", "weight"],
@@ -350,6 +361,25 @@ def submit_arbitration_tool(drivers: list[str], trade: Optional[dict] = None,
     }
 
 
+# A signed number in JSON value position. json.loads rejects a leading '+', and the
+# calibration ladder itself displays "+1.0 .. +0.6", so a model that serialises its
+# driver array as a *string* frequently writes ``"conviction": +0.75`` — one character
+# that was costing the whole meeting (measured on the first raw-arm run: 19 of 19
+# front_end degradations were exactly this). Applied only in the string-recovery
+# fallback, where the alternative is losing the record; a "+" after a colon inside
+# quoted prose is also stripped there, accepted collateral in a path that otherwise
+# degrades the meeting.
+_PLUS_IN_VALUE = re.compile(r"(:\s*)\+(?=[\d.])")
+
+
+def _loads_tolerant(s: str):
+    """``json.loads`` with one retry after stripping leading '+' from values."""
+    try:
+        return json.loads(s, strict=False)
+    except Exception:  # noqa: BLE001
+        return json.loads(_PLUS_IN_VALUE.sub(r"\1", s), strict=False)
+
+
 def _coerce_entries(items, key: str = "driver", value: str = "conviction") -> list[dict]:
     """Normalise the two shapes models reach for instead of an array of objects.
 
@@ -370,7 +400,7 @@ def _coerce_entries(items, key: str = "driver", value: str = "conviction") -> li
         return []
     if isinstance(items, str):
         try:
-            items = json.loads(items, strict=False)
+            items = _loads_tolerant(items)
         except Exception:  # noqa: BLE001
             return []
     if isinstance(items, dict):
@@ -480,7 +510,7 @@ def _recover_inlined_drivers(notes: str) -> tuple[list[dict], str]:
     if not m:
         return [], notes
     try:
-        parsed = json.loads(m.group(0), strict=False)
+        parsed = _loads_tolerant(m.group(0))
     except Exception:  # noqa: BLE001
         return [], notes
     if not isinstance(parsed, list):

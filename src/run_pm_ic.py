@@ -75,6 +75,9 @@ def main():
                     const="scramble_reports",
                     help="alias for --perturb scramble_reports (the Han prior-vs-evidence probe)")
     ap.add_argument("--dry-run", action="store_true", help="print the prompt, make no call")
+    ap.add_argument("--llm-cache", default="results/pm/llm_cache",
+                    help="disk cache for the LLM calls, so a resumed or re-run meeting "
+                         "costs $0 (house rule). '' disables.")
     ap.add_argument("--out", default="reports/pm/pm_run.jsonl")
     args = ap.parse_args()
 
@@ -83,7 +86,8 @@ def main():
     if not args.reports and args.include_input_ranking:
         ap.error("--include-input-ranking cannot be combined with --no-reports")
 
-    llm = None if args.dry_run else preflight_llm(args.model, max_tokens=args.max_tokens)
+    llm = None if args.dry_run else preflight_llm(args.model, max_tokens=args.max_tokens,
+                                                  cache_dir=args.llm_cache or None)
     pm = build_pm(args.pod, llm, max_report_words=args.max_report_words,
                   blind=args.blind, use_memory=args.memory,
                   perturbation=pm_perturbation(args.perturb),
@@ -204,7 +208,13 @@ def main():
     # ── the trade ───────────────────────────────────────────────────────────
     # Only for pods that declare a `trade:` block; a driver-space-only pod has no
     # instrument leg to score and must not be made to look as though it abstained.
-    if pm.trade_config:
+    # A returns-space trade (equities: `trade.space: return`) is scored by
+    # `src.run_sp_score`, never here — yield_pnl on an equity leg would invert
+    # every number while still looking plausible.
+    if str(pm.trade_config.get("space", "")).strip().lower() == "return":
+        print("\n[note] returns-space trade block — scored by src.run_sp_score, "
+              "not by the yield-space grader.")
+    elif pm.trade_config:
         # Prefix-dispatching loader (EQ_/INTL_/FRED) so a cross-market universe
         # ([DGS10, INTL_DE10Y, ...]-style) is priceable; pure-FRED universes
         # load exactly as before.

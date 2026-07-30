@@ -7,12 +7,12 @@
 # US-only refocus — this pod now arbitrates the four r7 internals analysts.
 # Their vendored data and corpora stay in data/ for a possible revival.
 #
-# NO trade: block, deliberately. The shipped P&L grader is yield-space
-# (sum(w * dy) in percentage points — evaluation/trade_pnl.py); equity index
-# levels are not comparable in that space, so a scored equity trade needs a
-# returns-space grader first (follow-up). Omitting `trade:` drops the trade
-# property from the submit tool cleanly — this pod arbitrates the equity panel
-# in driver space, which is exactly what ic_pm measures.
+# The trade block is RETURNS-space (`space: return`), not yield-space: the
+# follow-up the earlier "NO trade" note promised. `evaluation/sp_score.py` is
+# the grader (weighted next-month SPTR excess return); the yield-space
+# `trade_pnl` path is skipped for this pod by the runners. The PM's sized SPY
+# leg is a SECONDARY metric — the preregistered primary is the deterministic
+# polarity-map of the driver block, which every arm and baseline shares.
 
 display_name: "Equities — US direction from the market-internals panel"
 
@@ -49,5 +49,16 @@ weighing:
   gaps:         "Use the missing-inputs graph: each analyst sees only its own panel — you are the only seat holding all four."
   override:     "Override an analyst only where the cross-panel read changes the picture; never re-litigate an analyst's own-panel evidence from another panel alone."
 
-# risk_tags without a trade block would be unreachable (they live in trade.risk_tags),
-# so none are declared here until the returns-space grader lands.
+trade:
+  universe: [SPY]
+  max_legs: 1
+  # Which space the leg weights live in. `return` = signed exposure to the
+  # instrument's next-period RETURN (long/short), graded by sp_score; the
+  # default (unset) is yield-space, graded by trade_pnl. The tool's leg-weight
+  # description is generated from this key so the model is never told yield
+  # semantics for an equity instrument.
+  space: return
+  mandate:
+    - "One sized US equity position: a single SPY leg, positive = long, negative = short, scaled to your conviction."
+    - "Must NOT be a relative-value or spread trade — this seat expresses direction only."
+  risk_tags: [breadth, volatility, positioning, flow, policy, macro]
