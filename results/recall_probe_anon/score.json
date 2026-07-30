@@ -1,0 +1,65 @@
+{
+  "n_transport_errors": 0,
+  "n_parse_failures": 928,
+  "whole": {
+    "n_pre_cutoff": 169,
+    "quarter_acc": 0.3431952662721893,
+    "year_acc": 0.3609467455621302,
+    "exact_acc": 0.3254437869822485,
+    "post_cutoff_anchor": {
+      "n": 3,
+      "quarter_acc": 0.0
+    },
+    "subperiods": {
+      "2005-2009": 0.325,
+      "2010-2019": 0.2875,
+      "2020-2025": 0.4583333333333333
+    }
+  },
+  "cue": {
+    "n_pre_cutoff": 1487,
+    "quarter_acc": 0.1694687289845326,
+    "year_acc": 0.2878278412911903,
+    "exact_acc": 0.12979152656355078,
+    "post_cutoff_anchor": {
+      "n": 20,
+      "quarter_acc": 0.0
+    },
+    "subperiods": {
+      "2005-2009": 0.21262458471760798,
+      "2010-2019": 0.1361760660247593,
+      "2020-2025": 0.19690265486725664
+    },
+    "per_driver": {
+      "balance_sheet": 0.24,
+      "curve_slope": 0.16463414634146342,
+      "financial_conditions": 0.14678899082568808,
+      "inflation": 0.11242603550295859,
+      "inflation_expectations": 0.0718954248366013,
+      "labor_tightness": 0.12048192771084337,
+      "risk_appetite": 0.31952662721893493,
+      "sector_breadth": 0.16774193548387098,
+      "term_premium": 0.18181818181818182,
+      "vol_regime": 0.17365269461077845
+    },
+    "drop_one_driver": {
+      "balance_sheet": 0.16299559471365638,
+      "curve_slope": 0.17006802721088435,
+      "financial_conditions": 0.17126269956458637,
+      "inflation": 0.17678300455235205,
+      "inflation_expectations": 0.18065967016491755,
+      "labor_tightness": 0.17562452687358063,
+      "risk_appetite": 0.15022761760242792,
+      "sector_breadth": 0.16966966966966968,
+      "term_premium": 0.16848220769789396,
+      "vol_regime": 0.16893939393939394
+    }
+  },
+  "verdict": {
+    "whole_band": "PARTIAL",
+    "cue_band": "PARTIAL",
+    "cue_materially_reduces": true,
+    "kill_cue_not_a_defense": false,
+    "kill_recall_concern_unsupported": false
+  }
+}

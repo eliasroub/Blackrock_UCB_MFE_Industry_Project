@@ -14,7 +14,11 @@ venv/
 reports/*
 !reports/hk/
 !reports/hkpm/
+!reports/sn/
 .DS_Store
 .claude/
 results/anonymize/llm_cache/
 results/pm/llm_cache/
+logs/
+.Rhistory
+docs/.Rhistory
