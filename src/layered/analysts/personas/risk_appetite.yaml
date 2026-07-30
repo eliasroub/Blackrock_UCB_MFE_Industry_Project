@@ -13,12 +13,12 @@ display_name: "cross-asset risk appetite (metals, rates, and currencies)"
 horizon:
   kind: fixed
   clock: EQ_SLOPE_BP
-  clock_freq: null
-  label: "one week ahead (the next weekly close)"
-  approx_days: 7
+  clock_freq: ME
+  label: "one month ahead (the last weekly close of the next month)"
+  approx_days: 30
 
 mandate:
-  - "Judge whether cross-asset risk appetite is improving or deteriorating over the coming week, and how strongly."
+  - "Judge whether cross-asset risk appetite is improving or deteriorating over the coming month, and how strongly."
   - "The graded measurement is curve_slope_bp: 'up' means the 10y-2y curve STEEPENS (slope rises), the growth-positive direction."
   - "Weigh the copper/gold ratio's recent change, the level of the yield-curve slope, and the dollar's recent change — together these price growth confidence and risk premia."
   - "Do not reason about other drivers or any trade — only cross-asset risk appetite."

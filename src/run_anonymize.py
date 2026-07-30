@@ -68,7 +68,7 @@ EQUITY_SPECS = {
     "vol_regime": (
         "- name: vol_regime\n"
         "  specialty: equity volatility regime (implied and realized S&P 500 volatility)\n"
-        "  mandate: Judges whether implied volatility rises or eases over the coming week.\n"
+        "  mandate: Judges whether implied volatility rises or eases over the coming month.\n"
         "  relevant passages: financial-market stress or strain; market functioning and\n"
         "  liquidity; emergency or crisis-response measures; uncertainty about the outlook;\n"
         "  shifts in the balance of risks; anything that would reprice equity risk."
@@ -76,7 +76,7 @@ EQUITY_SPECS = {
     "sector_breadth": (
         "- name: sector_breadth\n"
         "  specialty: US equity sector rotation and market breadth\n"
-        "  mandate: Judges whether market breadth broadens or narrows over the coming week.\n"
+        "  mandate: Judges whether market breadth broadens or narrows over the coming month.\n"
         "  relevant passages: sector-level activity reads — household and consumer spending,\n"
         "  business fixed investment, housing, manufacturing and industrial production,\n"
         "  exports, services — and whether strength or weakness is described as broad-based\n"
@@ -90,7 +90,7 @@ EQUITY_SPECS = {
     "positioning": (
         "- name: positioning\n"
         "  specialty: S&P 500 futures positioning and investor crowding\n"
-        "  mandate: Judges whether asset managers add or unwind net longs over the coming week.\n"
+        "  mandate: Judges whether asset managers add or unwind net longs over the coming month.\n"
         "  relevant passages: ONLY language about investors' own behavior — investor\n"
         "  positioning, leverage, speculative activity, risk-taking, stretched or elevated\n"
         "  valuations, crowding, or unusual market flows. NOT the Committee's own asset\n"
