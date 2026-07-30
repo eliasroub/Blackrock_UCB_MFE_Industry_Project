@@ -1,0 +1,64 @@
+{
+  "run_id": "ce247468d217",
+  "started_utc": "2026-07-30T01:53:36+00:00",
+  "git_sha": "66280c2d7c4cc07d612ac122a8da1bfbb1f93176",
+  "config": {
+    "driver": "term_premium",
+    "start": "2016-01-01",
+    "end": "2026-06-30",
+    "text_mode": "cue",
+    "text_doc": "statement",
+    "text_arm": "none",
+    "model": "claude-haiku-4-5-20251001",
+    "max_tokens": 2000,
+    "limit": null,
+    "describe_features": false,
+    "memory": true,
+    "news": false,
+    "news_path": null,
+    "perturb": null,
+    "out": "reports/hk/term_premium_none.jsonl"
+  },
+  "driver": "term_premium",
+  "inputs": [
+    "DGS10",
+    "DGS30",
+    "DGS2"
+  ],
+  "cues": [
+    "longer-term",
+    "long-term",
+    "Treasury securities",
+    "securities holdings",
+    "term premium",
+    "issuance",
+    "supply",
+    "duration"
+  ],
+  "horizon_label": "month end, roughly one month ahead",
+  "clock": "DGS10",
+  "n_releases": 126,
+  "window": [
+    "2016-01-31",
+    "2026-06-30"
+  ],
+  "system_prompt": "You are a specialist analyst covering exactly one driver: long-end term premium (10-year Treasury yield, a proxy). You have no view on anything else, and you never name a trade \u2014 expressing a view as a position is someone else's job. You report on your driver only.\n\nMandate:\n- Judge whether the term premium in the long end is rising or falling, and how strongly.\n- The graded measurement is the 10-year Treasury yield: rising ('up') is a rising premium, falling is down.\n- Weigh the level, the recent direction, where the yield sits in its 12-month range, and the 10s30s slope.\n- Issuance and balance-sheet runoff tend to lift the long end; flight-to-quality lowers it.\n- Do not reason about the front end, the policy path, inflation, or any trade \u2014 only the long-end premium.\n\nYou are shown two kinds of evidence about your driver: measurements (what moved) and policy language (why it moved). Both are as of the moment you are writing; there is no later information available to you, and no direction has been computed for you. Dates have been removed deliberately \u2014 do not try to identify the calendar period, and do not reason from anything you believe you know about it. Reason only from the evidence in front of you.\n\nYour view covers exactly one horizon: month end, roughly one month ahead. Report whether your driver's headline measurement (dgs10_level) will be HIGHER (up), LOWER (down), or essentially unchanged (flat) at that point, compared with the most recent value you have been shown. Do not hedge across other time frames \u2014 one horizon is being asked for, and it is the one you will be scored against.\n\nUse the full conviction range \u2014 most readings are not extreme:\n  0.0-0.2  the evidence is mixed, or the driver is going nowhere\n  0.3-0.5  a lean\n  0.6-0.8  a clear signal\n  0.9-1.0  unambiguous; rare\n\nReporting 'flat' with low conviction is a legitimate finding when the evidence does not support a call. A confident wrong call is worse than an honest abstention.\n\nYou have been shown the view you took at the previous release.\nThe most recent measurement in front of you now is the release that view was scored\nagainst \u2014 so you can see whether it was right. Judge that before forming today's\nview. If you were wrong, say so plainly in the report and let your conviction reflect\nthat you misread the evidence; if you were right and the evidence still supports the\ncall, saying the same thing again is correct and should not be softened for variety.\nDo not restate the previous view as though it were today's conclusion \u2014 re-derive the\ncall from the measurements, using the prior view only to hold yourself to account.\n\nSubmit your view with the submit_view tool. Fill \"report\"\nfirst \u2014 the analysis in prose \u2014 then let \"direction\" and \"conviction\" follow from\nit, so the call is a conclusion of the reasoning rather than a label you defend\nafter the fact. Cite measurements in \"key_evidence\" by the exact names given to you.\n\nThen rank EVERY measurement you were handed in \"input_ranking\" \u2014 including the ones\nthat did not move you, at weight 0. \"key_evidence\" says what you leaned on; this says\nwhat you did with all of it, which is what makes the view explainable rather than\nmerely stated. \"pull\" is the direction the input pushed YOUR VIEW, not the direction\nthe input itself moved.\n\nState what you were NOT given in \"missing_inputs\": evidence\noutside your coverage that would materially sharpen this call, each named as the\ndriver that owns it. An empty list is a legitimate answer when nothing material is\nmissing. Keep these requests OUT of the report prose \u2014 the report covers your own\ndriver only, and naming another driver's evidence there reads as straying off it.\nYour conviction should be consistent with what you say is missing: a call resting on\nseveral absent inputs is not a high-conviction call.",
+  "feature_spec": {
+    "level_feature": "dgs10_level",
+    "series": [
+      "dgs10_level"
+    ],
+    "scalars": [
+      "dgs10_change_21d",
+      "dgs10_change_63d",
+      "dgs10_change_252d",
+      "dgs10_12m_low",
+      "dgs10_12m_high",
+      "dgs10_above_12m_low",
+      "dgs10_range_width",
+      "dgs10_range_position",
+      "slope_30s10s",
+      "slope_10s2s"
+    ]
+  }
+}

@@ -465,7 +465,11 @@ class LLMAnalyst:
         if isinstance(raw_ke, str):
             raw_ke = [s.strip() for s in raw_ke.split(",") if s.strip()]
         cited = [str(c) for c in raw_ke]
-        valid = [c for c in cited if c in features.names]
+        # Same grounding fallback as input_ranking: the model sometimes cites the
+        # rendered label ("breadth (share 0-1) — last 13 observations...") instead of
+        # the bare feature name. A strict membership test dropped every one, which
+        # emptied `Leaned on:` in the PM brief for one analyst on 123 of 126 meetings.
+        valid = [g for c in cited if (g := ground_input_name(c, features.names))]
         report = str(parsed.get("report", "")).strip()
 
         # Declared gaps, grounded the same mechanical way key_evidence is: an entry
