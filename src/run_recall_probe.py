@@ -53,9 +53,21 @@ PROMPT_TEMPLATE = (
 )
 
 
-def build_items() -> list[dict]:
-    """One dict per probe item: custom_id, arm, meeting date, driver, text."""
-    corpus = FomcCorpus(doc_type="statement")
+def build_items(corpus_path: str | None = None,
+                excerpt_dir: str | None = None) -> list[dict]:
+    """One dict per probe item: custom_id, arm, meeting date, driver, text.
+
+    ``corpus_path`` None keeps the committed configuration byte-for-byte — the raw
+    statement corpus, date-scrubbed by the selectors. Point it at
+    ``data/fomc/statements_anon.jsonl`` to probe the *anonymized* corpus instead,
+    which is a different and much stronger treatment: the committed 75.1% / 40.1%
+    figures measured date scrubbing, never anonymization.
+
+    ``excerpt_dir`` replaces the regex ``cue`` arm with the pre-computed per-driver
+    excerpt files, which is what the analysts were actually fed — probing
+    CueSelector over an anonymized corpus would measure bytes no analyst ever saw.
+    """
+    corpus = FomcCorpus(doc_type="statement", path=corpus_path)
     whole_sel, cue_sel = WholeDocumentSelector(corpus), CueSelector(corpus)
     personas = {}
     for p in sorted(glob.glob(PERSONA_GLOB)):
@@ -71,8 +83,19 @@ def build_items() -> list[dict]:
         items.append({"custom_id": f"whole_{d}", "arm": "whole", "date": d,
                       "driver": None, "text": ctx.render()})
         for driver, cues in personas.items():
-            ctx = cue_sel.select(dt, cues, driver)
+            if excerpt_dir:
+                ep = Path(excerpt_dir) / f"excerpts_{driver}.jsonl"
+                if not ep.exists():
+                    continue
+                ec = FomcCorpus(doc_type="statement", path=str(ep))
+                ctx = WholeDocumentSelector(ec).select(dt, [], driver)
+            else:
+                ctx = cue_sel.select(dt, cues, driver)
             if ctx.is_empty or not ctx.available:
+                continue
+            # A placeholder excerpt carries no statement text, so probing it would
+            # measure the placeholder, not the driver's language.
+            if "says nothing about this driver" in ctx.render():
                 continue
             items.append({"custom_id": f"cue_{d}_{driver}", "arm": "cue",
                           "date": d, "driver": driver, "text": ctx.render()})
@@ -84,7 +107,7 @@ def cmd_submit() -> None:
     from anthropic.types.message_create_params import MessageCreateParamsNonStreaming
     from anthropic.types.messages.batch_create_params import Request
 
-    items = build_items()
+    items = build_items(args.corpus, args.excerpt_dir)
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     (RESULTS_DIR / "items.json").write_text(json.dumps(items, indent=1))
 
@@ -225,7 +248,16 @@ def cmd_score() -> None:
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("cmd", choices=["submit", "fetch", "score"])
+    ap.add_argument("--corpus", default=None,
+                    help="statement corpus to probe (default: the committed raw corpus)")
+    ap.add_argument("--excerpt-dir", default=None,
+                    help="use pre-computed per-driver excerpts for the cue arm")
+    ap.add_argument("--results-dir", default=None,
+                    help="write elsewhere so committed results are never overwritten")
     args = ap.parse_args()
+    if args.results_dir:
+        globals()["RESULTS_DIR"] = Path(args.results_dir)
+        RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     {"submit": cmd_submit, "fetch": cmd_fetch, "score": cmd_score}[args.cmd]()
 
 
