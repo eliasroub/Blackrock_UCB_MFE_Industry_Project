@@ -27,7 +27,13 @@ import numpy as np
 import pandas as pd
 
 from src.data.equity_local import load_any_bundle as load_bundle
-from src.layered.analysts import CarryForward, build_analyst, preflight_llm, print_run_audit
+from src.layered.analysts import (
+    TEXT_ARMS,
+    CarryForward,
+    build_analyst,
+    preflight_llm,
+    print_run_audit,
+)
 from src.layered.evaluation import ICEvaluator, release_dates, required_ic
 from src.layered.perturb import ANALYST_NAMES, analyst_perturbation
 from src.layered.timeline import AsOf
@@ -40,6 +46,12 @@ def main():
     ap.add_argument("--end", default=None)
     ap.add_argument("--text-mode", default="cue", choices=["cue", "whole", "none"])
     ap.add_argument("--text-doc", default="statement", choices=["statement", "minutes"])
+    ap.add_argument("--text-arm", default=None, choices=TEXT_ARMS,
+                    help="one of the four declared text arms; supersedes --text-mode. "
+                         "anon_full = the anonymized whole statement; anon_cue = the "
+                         "persona's anonymized per-driver excerpt; none = numbers only; "
+                         "plain = the raw dated statement with the scrub OFF (a declared "
+                         "leak arm — evaluation only, never an analyst result).")
     ap.add_argument("--model", default="claude-haiku-4-5-20251001")
     # A 120-250 word report plus key_evidence, falsifier and JSON scaffolding lands
     # near 500-700 output tokens. The client's 1024 default truncates the tail often
@@ -67,6 +79,7 @@ def main():
     llm = preflight_llm(args.model, max_tokens=args.max_tokens)
     analyst = build_analyst(args.driver, llm, text_mode=args.text_mode,
                             text_doc=args.text_doc,
+                            text_arm=args.text_arm,
                             describe_features=args.describe_features,
                             use_memory=args.memory,
                             use_news=args.news, news_path=args.news_path,

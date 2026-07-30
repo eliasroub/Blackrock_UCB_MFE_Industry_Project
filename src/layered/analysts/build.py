@@ -28,27 +28,42 @@ from src.layered.text import CueSelector, NowcastNewsSelector, WholeDocumentSele
 _REPO_ROOT = Path(__file__).resolve().parents[3]
 
 
+_SELECTORS = {"cue": CueSelector, "whole": WholeDocumentSelector}
+
+
 def build_selector(text_mode: str, text_doc: str = "statement",
                    text_max_chars: int | None = None, *,
                    corpus_path: str | os.PathLike | None = None,
+                   scrub: bool = True,
                    verbose: bool = False):
     """The text channel: cue-partitioned, whole-document control, or none.
 
     ``corpus_path`` points at any documents.jsonl in the FOMC schema
     (``doc_type``/``release_date``/``text``); None keeps the FOMC default, so
     every pre-international persona behaves exactly as before.
+
+    ``scrub`` False turns off date scrubbing for the declared ``plain`` leak arm
+    only; every other caller leaves it True. The lookup below is a dict rather
+    than ``CueSelector if text_mode == "cue" else WholeDocumentSelector``
+    because that form makes any unrecognised mode silently serve whole
+    documents while the verbose line prints the mode it was asked for.
     """
     if text_mode == "none":
         return None
+    try:
+        cls = _SELECTORS[text_mode]
+    except KeyError:
+        raise ValueError(
+            f"unknown text_mode {text_mode!r}; choose from {sorted(_SELECTORS)} or 'none'"
+        ) from None
     corpus = FomcCorpus(doc_type=text_doc, path=corpus_path,
                         max_chars=text_max_chars)
-    cls = CueSelector if text_mode == "cue" else WholeDocumentSelector
     if verbose:
-        src = Path(corpus_path).parent.name if corpus_path else "fomc"
+        src = Path(corpus_path).name if corpus_path else "fomc/documents.jsonl"
         print(f"[info] {src} {text_doc}s loaded: {corpus.count} docs, "
-              f"selector={text_mode} (point-in-time by release_date)",
+              f"selector={text_mode}, scrub={scrub} (point-in-time by release_date)",
               file=sys.stderr)
-    return cls(corpus)
+    return cls(corpus, scrub=scrub)
 
 
 def build_news_selector(use_news: bool, *, news_path: str | os.PathLike | None = None,
@@ -79,8 +94,52 @@ def persona_corpus_path(driver: str) -> Path | None:
     return (_REPO_ROOT / rel) if rel else None
 
 
+# ── the four text arms ──────────────────────────────────────────────────────
+# An arm is a CORPUS choice plus a scrub state, not a code path: anonymization
+# lives in the data (statements_anon.jsonl and the per-driver excerpts), so
+# switching arms swaps which documents.jsonl the selector reads and nothing
+# about the analyst changes except the bytes of its text block.
+#
+# The two travel together in one mapping because they must never desync. A
+# `plain` arm that forgot scrub=False would render byte-identical to `anon_full`
+# and the leak experiment would report a confident null while measuring nothing.
+_ANON_STATEMENTS = _REPO_ROOT / "data" / "fomc" / "statements_anon.jsonl"
+_PLAIN_STATEMENTS = _REPO_ROOT / "data" / "fomc" / "documents.jsonl"
+
+TEXT_ARMS = ("anon_full", "anon_cue", "none", "plain")
+
+
+def arm_spec(text_arm: str, driver: str) -> tuple[str, Path | None, bool]:
+    """``(text_mode, corpus_path, scrub)`` for one declared text arm.
+
+    ``anon_cue`` resolves to the persona's own ``text_corpus`` — its per-driver
+    anonymized excerpt file — and renders it *whole*, because the cueing already
+    happened when that file was built (an offline relevance pass). Running
+    ``CueSelector`` over an already-narrowed 175-342 character excerpt would
+    filter twice and usually yield empty context, so no arm uses
+    ``text_mode="cue"`` and the regex cue path is unused by this experiment.
+
+    ``plain`` is the declared leak arm: the raw dated statements with the scrub
+    off. Its only honest contrast is ``anon_full`` — same document, same length,
+    anonymized versus not. It is evaluation-only and its IC must never be cited
+    as an analyst result (docs/decisions.md, EXPERIMENTS.md).
+    """
+    if text_arm not in TEXT_ARMS:
+        raise ValueError(
+            f"unknown text arm {text_arm!r}; choose from {list(TEXT_ARMS)}"
+        )
+    if text_arm == "none":
+        return "none", None, True
+    if text_arm == "anon_cue":
+        return "whole", persona_corpus_path(driver), True
+    if text_arm == "anon_full":
+        return "whole", _ANON_STATEMENTS, True
+    return "whole", _PLAIN_STATEMENTS, False
+
+
 def build_analyst(driver: str, llm, *, text_mode: str = "cue",
                   text_doc: str = "statement", text_max_chars: int | None = None,
+                  text_arm: str | None = None,
                   describe_features: bool = False, use_memory: bool = False,
                   use_news: bool = False, news_selector=None,
                   news_path: str | os.PathLike | None = None, news_weeks: int = 3,
@@ -98,9 +157,19 @@ def build_analyst(driver: str, llm, *, text_mode: str = "cue",
     an already-built ``news_selector`` when calling this once per driver in a loop,
     so the nowcast file is parsed once for the whole population rather than once
     per analyst; leave it None for a single ad-hoc build and it is constructed here.
+
+    ``text_arm`` selects one of the four declared arms (``TEXT_ARMS``) and, when
+    given, supersedes ``text_mode`` — it sets the corpus and the scrub state
+    together so the two cannot disagree. None keeps the persona-declared corpus
+    and ``text_mode``, which is the pre-arm behaviour.
     """
+    scrub = True
+    if text_arm is not None:
+        text_mode, corpus_path, scrub = arm_spec(text_arm, driver)
+    else:
+        corpus_path = persona_corpus_path(driver)
     selector = build_selector(text_mode, text_doc, text_max_chars,
-                              corpus_path=persona_corpus_path(driver),
+                              corpus_path=corpus_path, scrub=scrub,
                               verbose=verbose)
     if use_news and news_selector is None:
         news_selector = build_news_selector(use_news, news_path=news_path,

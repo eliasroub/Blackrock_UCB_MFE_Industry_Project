@@ -5,15 +5,17 @@ It is kept precisely so the cost of *not* partitioning stays measurable — this
 is what produced the 0.221 → 0.339 correlation collapse, and a fix is only worth
 claiming against the thing it fixed.
 
-Dates are still scrubbed here. The control varies the partition, not the leak
-surface, so both arms are stripped identically and only one thing differs.
+Dates are scrubbed here by default. The control varies the partition, not the leak
+surface, so both arms are stripped identically and only one thing differs. The one
+exception is the `plain` text arm, which constructs this selector with
+``scrub=False`` to measure what the scrub buys; that is a declared leak arm, not a
+production path — see docs/decisions.md.
 """
 from __future__ import annotations
 
 import pandas as pd
 
-from src.layered.text.cue import strip_chrome
-from src.layered.text.selector import TextContext, TextSelector, scrub_dates, sentences
+from src.layered.text.selector import TextContext, TextSelector, sentences
 
 
 class WholeDocumentSelector(TextSelector):
@@ -23,7 +25,7 @@ class WholeDocumentSelector(TextSelector):
         current, _ = self.corpus.pair_as_of(asof)
         if current is None:
             return TextContext(driver=driver, doc_type=self.doc_type, available=False)
-        body = strip_chrome(scrub_dates(current))
+        body = self._clean(current)
         return TextContext(
             driver=driver,
             doc_type=self.doc_type,
