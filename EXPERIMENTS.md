@@ -13,6 +13,83 @@ measured).
 
 ## Preregistered (pending)
 
+### sonnet-leak-3driver — preregistered 2026-07-30 (unrun)
+
+**Question.** The Haiku board found no leak: `plain` minus `anon_full` came in at a
+median -0.018 IC across 11 analysts, and the preregistered recall-stratified test
+returned CLEAN-SKILL in all three arms. But memorization is a known property of
+LLMs and it scales with capability — this project's own ladder (Haiku 0.187 /
+Sonnet 0.340 / Opus 0.492 on inflation) is *consistent* with recall growing with
+model strength. Haiku may simply be too weak to exploit a memorised path. **Does the
+leak appear on a stronger model?**
+
+**Design.** `claude-sonnet-5`, two arms, three drivers, otherwise identical to the
+Haiku board: window 2016-01-01 to 2026-06-30, `--memory` on, `--max-tokens 2000`,
+news off.
+
+| arm | corpus | scrub |
+|---|---|---|
+| `anon_full` | `data/fomc/statements_anon.jsonl` | on |
+| `plain` | `data/fomc/documents.jsonl` | **off** |
+
+**Drivers, chosen on measured identifiability, not on outcome.** `curve_slope` —
+the recall probe measured its cue contexts at **73.4%** quarter-identifiable, the
+highest of any driver. `inflation` — the most-published macro path, the most
+plausibly memorised. `balance_sheet` — the strongest signal on the Haiku board
+(IC 0.695 anon_full) and the one the Fed announces in words. If recall helps
+anywhere, it is these three.
+
+**Primary metric.** Paired ΔIC = IC(`plain`) − IC(`anon_full`) per driver, on shared
+release dates, with a statement-clustered bootstrap interval.
+
+**Directional predictions, recorded before the run.**
+1. If recall drives skill: **ΔIC > 0**, and largest on `curve_slope`.
+2. If the Haiku null was a capability floor: ΔIC should be **materially larger on
+   Sonnet than the Haiku values it replicates** (Haiku: curve_slope −0.028,
+   inflation −0.062, balance_sheet +0.036).
+3. If the Haiku null was real: ΔIC ≈ 0 again, on a model with 3.5× the per-call
+   cost and a demonstrably higher IC ceiling.
+
+**Decision rules (LOCKED).**
+- **LEAK-ON-SONNET** iff ΔIC ≥ +0.10 on at least two of three drivers with a
+  bootstrap CI excluding zero. Only this verdict permits the claim that
+  de-anonymization carries recoverable period information at the analyst layer, and
+  it obliges every in-window Sonnet text-channel IC to quote the measured ΔIC as an
+  upper bound on how much could be recall.
+- **NO-LEAK-ON-SONNET** iff no driver reaches ΔIC ≥ +0.10 with a CI excluding zero.
+  This does **not** prove absence — see power.
+- **INDETERMINATE** otherwise.
+- The `plain` arm's IC is a leak measurement and may never be cited as an analyst
+  result, on this model or any other.
+
+**Power, stated honestly and before the fact.** n ≈ 124-126 per leg. On the Haiku
+board the paired ΔIC standard error implies a minimum detectable effect around
+**0.12**, so **a leak smaller than roughly 0.1 IC is invisible to this design and a
+null must not be reported as ruling one out.** Three drivers also means three tests;
+one |ΔIC| of 0.1 by chance is not surprising, which is why the rule requires two of
+three.
+
+**Confound, named rather than discovered.** `plain` vs `anon_full` is not purely a
+date contrast. The anonymizer rewrote rather than deleted, so it also drops the "For
+release at" boilerplate from 24 of 84 documents and "Implementation Note" from 28 of
+84. It does not touch the economic body, and boilerplate cannot explain a positive
+result, but the arm is "de-anonymized" rather than strictly "dated".
+
+**Untested premise, also named.** The committed `fomc-recall-probe` measured 75.1%
+identifiability on the **date-scrubbed** corpus, not on `statements_anon.jsonl`.
+Whether the anonymizer defeats a strong model's recall has never been measured, so a
+null here has two readings — recall does not help, or the anonymization never blocked
+it. Resolving that needs the probe re-run against the anon corpus (~$1.60 batched),
+which is deliberately **not** part of this entry.
+
+**Cost.** 376 observations x 2 arms = 752 calls at a measured ~$0.027/call on Sonnet
+with the current prompt ⇒ **≈$20** (±25%), ~25 min at 6-way. Approved by the user
+2026-07-30.
+
+**Peeking status.** Genuinely preregistered: no Sonnet output exists on either arm at
+this window. The Haiku values quoted in prediction 2 are from a different model and
+are the comparison, not a peek.
+
 ### analyst-4arm-haiku — preregistered 2026-07-29 (unrun)
 
 **Question.** The analyst layer varies exactly one thing: what text an analyst is
