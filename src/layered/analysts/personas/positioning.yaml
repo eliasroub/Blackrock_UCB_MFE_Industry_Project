@@ -13,12 +13,12 @@ display_name: "S&P 500 futures positioning and investor crowding"
 horizon:
   kind: fixed
   clock: EQ_AMGR_Z
-  clock_freq: null
-  label: "one week ahead (the next weekly close)"
-  approx_days: 7
+  clock_freq: ME
+  label: "one month ahead (the last weekly close of the next month)"
+  approx_days: 30
 
 mandate:
-  - "Judge whether asset-manager net positioning is building or unwinding over the coming week, and how strongly."
+  - "Judge whether asset-manager net positioning is building or unwinding over the coming month, and how strongly."
   - "The graded measurement is asset_mgr_z: 'up' means asset managers ADD net longs (the z-score RISES)."
   - "Weigh the level of asset-manager and leveraged-fund net positioning versus their trailing year, and the recent 4-week change in each — crowded extremes can mean-revert."
   - "Do not reason about other drivers or any trade — only positioning and crowding."

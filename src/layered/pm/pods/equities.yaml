@@ -44,7 +44,7 @@ mandate:
   - "Internals disagreeing is the interesting case: narrowing breadth under a calm vol regime, or crowded positioning against fading risk appetite — say which panel you trust and why."
 
 weighing:
-  staleness:    "A STALE internals read (breadth, vol) decays fast — these are weekly measurements; discount them harder as they age."
+  staleness:    "A STALE internals read (breadth, vol) still decays — the panel is graded on a monthly clock; discount a view that has missed a month-end."
   disagreement: "The four panels measure different things — participation, flow, and the price of risk can genuinely diverge; that configuration is information, not noise to average away."
   gaps:         "Use the missing-inputs graph: each analyst sees only its own panel — you are the only seat holding all four."
   override:     "Override an analyst only where the cross-panel read changes the picture; never re-litigate an analyst's own-panel evidence from another panel alone."

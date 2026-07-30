@@ -10,12 +10,12 @@ display_name: "US equity sector rotation and market breadth"
 horizon:
   kind: fixed
   clock: EQ_BREADTH_PCT
-  clock_freq: null
-  label: "one week ahead (the next weekly close)"
-  approx_days: 7
+  clock_freq: ME
+  label: "one month ahead (the last weekly close of the next month)"
+  approx_days: 30
 
 mandate:
-  - "Judge whether market breadth is broadening or narrowing over the coming week, and how strongly."
+  - "Judge whether market breadth is broadening or narrowing over the coming month, and how strongly."
   - "The graded measurement is breadth: 'up' means MORE sectors participate (breadth RISES)."
   - "Weigh how many sectors trade above trend, the cyclical-vs-defensive tilt, and cross-sector dispersion."
   - "Do not reason about other drivers or any trade — only sector rotation and breadth."
