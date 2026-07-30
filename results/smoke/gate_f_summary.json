@@ -1,0 +1,199 @@
+{
+  "gate": "F \u2014 smoke pilot",
+  "date": "2026-07-29",
+  "verdict": "PASS",
+  "model": "claude-haiku-4-5-20251001",
+  "calls": 18,
+  "retries": 0,
+  "spend_usd": 0.1373,
+  "measured_per_call": {
+    "input_tokens": 2989,
+    "output_tokens": 928,
+    "usd": 0.00763
+  },
+  "calibration_per_call_usd": 0.005356,
+  "cost_ratio_vs_calibration": 1.42,
+  "note": "Output tokens are 928/call against the 621 measured in the 2026-07-20 sweeps, because input_ranking is now a required tool field and the analyst must rank every measurement it was handed. Revises the full 4-arm run from ~$30 to ~$42.",
+  "legs": [
+    {
+      "leg": "inflation_anon_cue",
+      "n": 3,
+      "degraded": 0,
+      "statement_release_dates": [
+        "2015-12-16",
+        "2016-01-27",
+        "2016-01-27"
+      ],
+      "directions": [
+        "down",
+        "down",
+        "up"
+      ],
+      "convictions": [
+        0.55,
+        0.68,
+        0.62
+      ],
+      "n_input_ranking": [
+        16,
+        15,
+        15
+      ],
+      "report_words": [
+        268,
+        277,
+        266
+      ]
+    },
+    {
+      "leg": "inflation_plain",
+      "n": 3,
+      "degraded": 0,
+      "statement_release_dates": [
+        "2015-12-16",
+        "2016-01-27",
+        "2016-01-27"
+      ],
+      "directions": [
+        "down",
+        "down",
+        "up"
+      ],
+      "convictions": [
+        0.68,
+        0.5,
+        0.65
+      ],
+      "n_input_ranking": [
+        17,
+        16,
+        14
+      ],
+      "report_words": [
+        350,
+        296,
+        306
+      ]
+    },
+    {
+      "leg": "positioning_anon_cue",
+      "n": 3,
+      "degraded": 0,
+      "statement_release_dates": [
+        "2016-01-27",
+        "2016-01-27",
+        "2016-03-16"
+      ],
+      "directions": [
+        "up",
+        "up",
+        "flat"
+      ],
+      "convictions": [
+        0.5,
+        0.55,
+        0.35
+      ],
+      "n_input_ranking": [
+        4,
+        4,
+        4
+      ],
+      "report_words": [
+        278,
+        254,
+        259
+      ]
+    },
+    {
+      "leg": "positioning_plain",
+      "n": 3,
+      "degraded": 0,
+      "statement_release_dates": [
+        "2016-01-27",
+        "2016-01-27",
+        "2016-03-16"
+      ],
+      "directions": [
+        "up",
+        "flat",
+        "up"
+      ],
+      "convictions": [
+        0.35,
+        0.25,
+        0.35
+      ],
+      "n_input_ranking": [
+        4,
+        4,
+        4
+      ],
+      "report_words": [
+        278,
+        284,
+        274
+      ]
+    },
+    {
+      "leg": "risk_appetite_anon_cue",
+      "n": 3,
+      "degraded": 0,
+      "statement_release_dates": [
+        "2016-01-27",
+        "2016-01-27",
+        "2016-03-16"
+      ],
+      "directions": [
+        "down",
+        "down",
+        "flat"
+      ],
+      "convictions": [
+        0.68,
+        0.72,
+        0.35
+      ],
+      "n_input_ranking": [
+        3,
+        3,
+        3
+      ],
+      "report_words": [
+        241,
+        227,
+        250
+      ]
+    },
+    {
+      "leg": "risk_appetite_plain",
+      "n": 3,
+      "degraded": 0,
+      "statement_release_dates": [
+        "2016-01-27",
+        "2016-01-27",
+        "2016-03-16"
+      ],
+      "directions": [
+        "down",
+        "down",
+        "flat"
+      ],
+      "convictions": [
+        0.68,
+        0.72,
+        0.35
+      ],
+      "n_input_ranking": [
+        3,
+        3,
+        3
+      ],
+      "report_words": [
+        229,
+        257,
+        293
+      ]
+    }
+  ]
+}
