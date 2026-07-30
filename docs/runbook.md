@@ -1,9 +1,9 @@
 # Run-book — how to run the pipeline, and what the pipeline must contain
 
-Two things live here. **Part A** is operational: environment, the canonical command sequence,
+Three things live here. **Part A** is operational: environment, the canonical command sequence,
 every flag that matters, and what each artifact contains. **Part B** is the specification of the
 validation pass — the arms, why each one earns its cost, the gates that must pass before money is
-spent, and the fallback tiers.
+spent, and the fallback tiers. **Part C** is how to read the results once the run lands.
 
 Companion documents: `docs/implementation-report.md` (what the code is),
 `docs/research-positioning.md` (why it is shaped this way), `docs/full-pipeline-plan.md` (the
@@ -35,7 +35,9 @@ Optional environment overrides, all with sensible defaults:
 `NOWCAST_NEWS_PATH`.
 
 **Model defaults:** analysts `claude-haiku-4-5-20251001`; PM `claude-sonnet-5`. Prices are in
-`src/llm/anthropic_client.py:195`. Measured cost per call from committed audits: Haiku ≈ $0.005,
+`src/llm/anthropic_client.py:195`. Measured cost per call: Haiku **$0.0076** on the current
+prompt (2026-07-29 pilot — up 1.42x from $0.0054 because `input_ranking` became a required tool
+field, so the analyst now ranks every measurement and emits ~928 output tokens against 621),
 Sonnet-5 analyst ≈ $0.021, Sonnet-5 PM ≈ $0.046, Opus-4-8 ≈ $0.031.
 
 ## A2. The canonical sequence
@@ -46,7 +48,7 @@ Sonnet-5 analyst ≈ $0.021, Sonnet-5 PM ≈ $0.046, Opus-4-8 ≈ $0.031.
 3. run_feature_ic           free    the floor — is the driver predictable at all?
 4. text_coverage_preflight  free    the exact call count and price tag
 5. run_analyst --dry-run    free    inspect the exact bytes the model will see
-6. smoke pilot              ~$0.10  9 calls, three drivers, three releases
+6. smoke pilot              ~$0.14  18 calls, three drivers x two arms
 7. run_hk_board.sh          paid    Layer 1 — the analyst board
 8. board QC                 free    per-leg sanity before anything consumes it
 9. run_pm_mechanical        free    the control, first, so it exists early
@@ -54,7 +56,7 @@ Sonnet-5 analyst ≈ $0.021, Sonnet-5 PM ≈ $0.046, Opus-4-8 ≈ $0.031.
 11. notebooks / diagnosis   free    Layer 3
 ```
 
-Steps 1–5 cost nothing and catch almost everything. Step 6 is the $0.10 that protects the $55.
+Steps 1-5 cost nothing and catch almost everything. Step 6 is the $0.14 that protects the $42.
 
 ## A3. Free entry points
 
@@ -158,8 +160,9 @@ One call per release on the driver's own clock. This is where the money goes.
 |---|---|---|
 | `--driver` | `inflation` | |
 | `--start` / `--end` | `2005-01-01` / none | |
-| `--text-mode` | `cue` | `cue` \| `whole` \| `none` — the three text arms |
-| `--text-doc` | `statement` | `statement` \| `minutes` |
+| `--text-arm` | none | **the four declared arms** — `anon_full` \| `anon_cue` \| `none` \| `plain`. Sets the corpus *and* the scrub state together; supersedes `--text-mode` |
+| `--text-mode` | `cue` | the older switch: `cue` \| `whole` \| `none`. Left for back-compatibility; the arm flag is what the validation run uses |
+| `--text-doc` | `statement` | `statement` \| `minutes`. **Nothing feeds minutes** — no persona overrides the default |
 | `--model` | `claude-haiku-4-5-20251001` | |
 | `--max-tokens` | `2000` | **do not lower.** 1024 truncates the JSON and caused a measured 55% retry rate |
 | `--limit` | none | cap releases — use for pilots |
@@ -453,3 +456,109 @@ Carried forward deliberately rather than silently.
    statement was read requires re-deriving it from `asof` via the corpus as-of rule.
 5. **Date scrubbing is not date blindness**, and the committed recall probe measured exactly how
    far short it falls.
+
+---
+
+# Part C — Reading the four-arm analyst results
+
+Everything here is **offline and $0** over the saved run files. The run writes the full
+prompt, features, text, raw response and parsed view per record, so every number below
+recomputes for free — pay for tokens once, keep the outputs forever.
+
+Runs land at `reports/hk/<driver>_<arm>.jsonl` with a sibling `.meta.json`.
+
+## C1. What each run already printed
+
+`run_analyst_ic` prints its own scorecard to stdout as it finishes, captured in
+`logs/<driver>_<arm>.log`:
+
+- the **IC table** — rank IC of signed conviction against the next-release change, with
+  n, t and hit rate. This is the primary metric.
+- the **calibration split** — IC of `sign(signed)` against IC of `signed`. If the two
+  are close, the conviction magnitude is carrying no ordering information.
+- **signal Sharpe**, direction mix, conviction distribution.
+- the **run audit** — calls, tokens, `est_cost_usd`, plus carry-forward stats.
+
+So the fastest read of a finished pass is `grep -A12 "AGENT IC" logs/*.log`.
+
+## C2. The four metric families
+
+```bash
+# A — primary IC per (driver x arm), side by side
+python3 -m src.compare_sweep reports/hk/inflation_*.jsonl
+
+# A — secondary: does the view reach a tradeable yield?
+python3 scripts/instrument_ic.py --out results/instrument_ic.csv reports/hk/*.jsonl
+
+# C — does the report add anything the header did not?
+python3 scripts/text_redundancy.py --out results/redundancy.csv reports/hk/*.jsonl
+```
+
+**B — input relevance**, and **D — cross-analyst correlation**, from a Python shell:
+
+```python
+from src.layered.evaluation.runs import load_run
+from src.layered.evaluation.cross_correlation import compare_arms, discover_arm
+
+# B: which measurements actually moved each view, averaged over time
+run = load_run("reports/hk/inflation_anon_cue.jsonl")
+import collections, pandas as pd
+w = collections.defaultdict(list)
+for ranking in run.views["input_ranking"]:
+    for name, pull, weight in ranking:
+        w[name].append(weight * {"up": 1, "down": -1, "neutral": 0}[pull])
+print(pd.Series({k: sum(v) / len(v) for k, v in w.items()}).sort_values())
+
+# D: the arm question — does feeding text converge the panel?
+table, detail = compare_arms({
+    arm: discover_arm("reports/hk", suffix=f"_{arm}")
+    for arm in ("none", "anon_cue", "anon_full", "plain")
+})
+print(table)                      # mean_abs per arm — lower = more independent
+print(detail["anon_full"].pairs)   # the pairwise detail, sorted by |r|
+```
+
+`mean_abs` rising from `none` to `anon_full` is the convergence cost the partition
+exists to limit. The prior measurement on a different board was 0.22 → 0.34.
+
+## C3. The leak read — `plain` versus `anon_full`
+
+This is the pre-registered contrast and the one with locked decision rules
+(`EXPERIMENTS.md` → `analyst-4arm-haiku`). Compare only those two arms, paired on shared
+release dates, per driver. Watch `risk_appetite` in particular: its persona header
+records that in r7 its *dated* arm was RECALL-POTENT.
+
+**The `plain` arm's IC is a leak measurement and may never appear in an analyst result
+table.** Report it only in the leak section, labelled.
+
+## C4. Report-level diagnostics
+
+```python
+from src.layered.evaluation.report_quality import compare_runs, conviction_response
+compare_runs(["reports/hk/inflation_anon_cue.jsonl", "reports/hk/inflation_plain.jsonl"],
+             driver="inflation")
+conviction_response("reports/hk/inflation_anon_cue.jsonl")
+```
+
+`conviction_response` is the sharpest of these: having been wrong at the previous
+release, does the next call come back softer, or at the same conviction as though
+nothing happened? A calibrated analyst has `d_conv_after_wrong` clearly below
+`d_conv_after_right`.
+
+## C5. The notebooks
+
+`notebooks/analyst_evaluation.ipynb` is the fullest read — IC, hit rate, calibration,
+decision series, report-prose diagnosis. `perturbation_evaluation.ipynb` covers the
+robustness arms. Both run offline over whatever is in `reports/`.
+
+## C6. Four things to check before believing any of it
+
+1. **Zero degraded per leg.** A throttled run does not crash; it fills the panel with
+   abstentions. `grep -c '"degraded": true' reports/hk/*.jsonl`
+2. **Record count equals expected observations** — 124 for `inflation` and
+   `labor_tightness`, 126 for the other nine.
+3. **Never pool across drivers.** Excerpt coverage ranges 0-100%
+   (`positioning` 0%, `financial_conditions` 63%, `inflation` 100%), so a pooled arm
+   delta is dominated by whichever drivers actually got text.
+4. **Post-2024 is 17 observations.** Report sign agreement and hit rate only, with an
+   explicit "underpowered, no t-statistic" label. Detecting t=2 there needs IC >= 0.459.
