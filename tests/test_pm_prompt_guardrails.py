@@ -194,6 +194,17 @@ def test_pm_recovers_drivers_delivered_as_a_map():
     assert pm.arbitrate(m).drivers == {"inflation": 0.4, "curve_slope": -0.2}
 
 
+def test_pm_recovers_plus_signed_convictions_in_a_stringified_array():
+    """Measured on the first raw-arm run: the model serialised the array as a string
+    AND wrote '+0.75' as the calibration ladder displays it — one invalid-JSON
+    character that degraded 19 meetings whose data was otherwise complete."""
+    payload = ('{"notes": "n", "drivers": '
+               '"[{\\"driver\\": \\"inflation\\", \\"conviction\\": +0.75, \\"why\\": \\"w\\"},'
+               ' {\\"driver\\": \\"curve_slope\\", \\"conviction\\": -0.2, \\"why\\": \\"w\\"}]"}')
+    pm, m = _pm_and_meeting(payload)
+    assert pm.arbitrate(m).drivers == {"inflation": 0.75, "curve_slope": -0.2}
+
+
 def test_pm_recovers_drivers_inlined_into_the_notes():
     """The dominant real failure: in ~1 meeting in 6 the model wrote the prose and then
     the driver array into `notes`, emitting no `drivers` key and switching to XML
