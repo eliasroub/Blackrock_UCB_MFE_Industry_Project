@@ -59,6 +59,26 @@ class MissingInput(BaseModel):
     why: str = ""                                # what it would settle, ≤ 20 words
 
 
+class InputWeight(BaseModel):
+    """How much one named input pulled the analyst's view, and which way.
+
+    ``key_evidence`` records only what the analyst chose to cite, so it is silent on
+    everything the analyst read and set aside — and silence there is indistinguishable
+    from "never looked at it". This is the complete ranking: every measurement the
+    analyst was handed gets a pull and a weight, so a theme can be attributed across
+    time and across drivers rather than inferred from prose.
+
+    ``pull`` is the direction this input pushed the view, which is NOT the direction of
+    the input's own move: a falling unemployment rate pulls a rate view *up*. Keeping
+    them separate is what makes the ranking explanatory rather than a restatement of
+    the features.
+    """
+
+    input: str                                   # exact feature name as handed over
+    pull: str = "neutral"                        # "up" | "down" | "neutral"
+    weight: float = Field(default=0.0, ge=0.0, le=1.0)   # 0 = ignored, 1 = decisive
+
+
 class DiscountedAnalyst(BaseModel):
     """An analyst the PM deliberately set aside, and why.
 
@@ -121,6 +141,10 @@ class DriverView(BaseModel):
     # What the analyst was never given. Optional with a default like the rest of this
     # block, which is what keeps every pre-existing run file loadable.
     missing_inputs: list[MissingInput] = Field(default_factory=list)
+    # The complete attribution: every input the analyst was handed, ranked by how far
+    # it moved this view. Optional with a default like the rest of this block, so every
+    # run file written before it existed still loads.
+    input_ranking: list[InputWeight] = Field(default_factory=list)
     source: str = ""                             # "llm:inflation", "benchmark:persistence"
     degraded: bool = False                       # emitted after a failure — exclude from grading
     # Re-emitted unchanged because no evidence moved since the previous meeting. Not
