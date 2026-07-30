@@ -26,6 +26,7 @@ import pandas as pd
 
 from src.data.equity_local import load_any_bundle as load_bundle
 from src.layered.analysts import (
+    TEXT_ARMS,
     CarryForward,
     build_analyst,
     preflight_llm,
@@ -46,6 +47,12 @@ def main():
     ap.add_argument("--text-mode", default="cue", choices=["cue", "whole", "none"],
                     help="cue = driver-partitioned; whole = un-partitioned control")
     ap.add_argument("--text-doc", default="statement", choices=["statement", "minutes"])
+    ap.add_argument("--text-arm", default=None, choices=TEXT_ARMS,
+                    help="one of the four declared text arms; supersedes --text-mode. "
+                         "anon_full = the anonymized whole statement; anon_cue = the "
+                         "persona's anonymized per-driver excerpt; none = numbers only; "
+                         "plain = the raw dated statement with the scrub OFF (a declared "
+                         "leak arm — evaluation only, never an analyst result).")
     ap.add_argument("--text-max-chars", type=int, default=None)
     ap.add_argument("--model", default="claude-haiku-4-5-20251001")
     ap.add_argument("--dry-run", action="store_true", help="print the prompt, make no call")
@@ -67,7 +74,8 @@ def main():
     llm = None if args.dry_run else preflight_llm(args.model)
 
     analyst = build_analyst(args.driver, llm, text_mode=args.text_mode,
-                            text_doc=args.text_doc, text_max_chars=args.text_max_chars,
+                            text_doc=args.text_doc,
+                            text_arm=args.text_arm, text_max_chars=args.text_max_chars,
                             use_news=args.news, news_path=args.news_path,
                             perturbation=analyst_perturbation(args.perturb))
     runner = analyst if args.no_carry_forward else CarryForward(analyst)

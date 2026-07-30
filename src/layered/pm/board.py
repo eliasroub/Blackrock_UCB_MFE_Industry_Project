@@ -44,8 +44,15 @@ from src.layered.evaluation.runs import view_from
 # analysts run on different models, windows, or prompt arms is not a meeting — it is
 # a comparison of arms wearing a meeting's clothes, and every cross-driver number
 # computed from it (disagreement above all) would be an artifact of the mismatch.
-IDENTITY_KEYS = ("start", "end", "model", "text_mode", "text_doc",
+IDENTITY_KEYS = ("start", "end", "model", "text_mode", "text_doc", "text_arm",
                  "describe_features", "memory", "perturb")
+
+# ``text_arm`` is here because it decides both which corpus a leg read and whether
+# its dates were scrubbed. Without it an anonymized leg and a plain (dated) leg
+# would assemble into one board in silence, and every cross-driver number off that
+# board would be an artifact of the mixture. Legs written before the flag existed
+# carry no such key and read as None, which agrees with each other, so an all-old
+# board still assembles — see the normalisation note in _assert_identical_config.
 
 
 class BoardConfigMismatch(ValueError):
@@ -294,11 +301,19 @@ class ViewBoard:
 
 
 def _assert_identical_config(sources: dict[str, dict]) -> None:
-    """Every leg must have been run under the same arm. See ``IDENTITY_KEYS``."""
+    """Every leg must have been run under the same arm. See ``IDENTITY_KEYS``.
+
+    Absent and falsey are treated as the same value. A key added to
+    ``IDENTITY_KEYS`` after some legs were written would otherwise read ``None``
+    on the old ones and ``False`` on the new, and ``None != False`` would reject
+    a board whose legs are in fact identical — a rejection that several test
+    fixtures swallow into ``pytest.skip``, so the symptom would be tests quietly
+    ceasing to run rather than a failure anyone notices.
+    """
     seen: dict[str, dict] = {}
     for driver, src in sources.items():
         cfg = src.get("config") or {}
-        seen[driver] = {k: cfg.get(k) for k in IDENTITY_KEYS}
+        seen[driver] = {k: (cfg.get(k) or None) for k in IDENTITY_KEYS}
     if not seen:
         return
     ref_driver, ref = next(iter(seen.items()))

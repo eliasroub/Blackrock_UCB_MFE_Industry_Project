@@ -93,12 +93,29 @@ class TextContext(BaseModel):
 class TextSelector(ABC):
     """Selects the passages of a point-in-time document that bear on one driver."""
 
-    def __init__(self, corpus):
+    def __init__(self, corpus, *, scrub: bool = True):
         self.corpus = corpus
+        self.scrub = scrub
 
     @property
     def doc_type(self) -> str:
         return getattr(self.corpus, "doc_type", "document")
+
+    def _clean(self, text: str) -> str:
+        """Apply the date scrub, unless this selector is a declared leak arm.
+
+        Scrubbing lives here rather than in each subclass so no arm can forget
+        it, and ``scrub`` defaults True so every shipped path is unchanged. The
+        one caller that passes False is the ``plain`` text arm, whose whole
+        purpose is to measure what the scrub buys — see docs/decisions.md.
+        Chrome stripping is deliberately inside the same switch: ``_HEADER``
+        matches the substituted ``[time]`` token, so it only fires after a
+        scrub, and an unscrubbed arm is meant to keep the dated release header.
+        """
+        if not self.scrub:
+            return text
+        from src.layered.text.cue import strip_chrome  # local: cue imports this module
+        return strip_chrome(scrub_dates(text))
 
     @abstractmethod
     def select(self, asof: pd.Timestamp, cues: list[str], driver: str = "") -> TextContext:

@@ -259,3 +259,76 @@ def test_equity_group_specs_and_paths():
     assert set(tool["input_schema"]["properties"]) == set(EQUITY_PERSONAS)
     assert pass2_results_path("macro").name == "pass2_results.jsonl"
     assert pass2_results_path("equity").name == "pass2_equity_results.jsonl"
+
+
+# ── the shipped corpora themselves ──────────────────────────────────────────
+# Everything above tests the pipeline on synthetic docs. These test the files it
+# actually produced, because the arm-1-vs-arm-4 comparison is only a paired
+# comparison if the anonymized corpus lines up row-for-row with the raw one. A
+# dropped or shifted release_date would silently unpair the arms and nothing
+# else in the suite would notice.
+
+REPO = Path(__file__).resolve().parents[1]
+FOMC_DIR = REPO / "data" / "fomc"
+
+
+def _rows(path: Path) -> list[dict]:
+    return [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
+
+
+def _raw_statements() -> list[dict]:
+    return [r for r in _rows(FOMC_DIR / "documents.jsonl") if r["doc_type"] == "statement"]
+
+
+def test_anon_corpus_pairs_row_for_row_with_the_raw_statements():
+    """The anonymized corpus is a substitution, not a subset."""
+    raw, anon = _raw_statements(), _rows(FOMC_DIR / "statements_anon.jsonl")
+    assert len(anon) == len(raw) == 172
+    assert {r["release_date"] for r in anon} == {r["release_date"] for r in raw}
+    assert {r["doc_id"] for r in anon} == {r["doc_id"] for r in raw}
+    assert {r["doc_type"] for r in anon} == {"statement"}
+
+
+def test_every_persona_excerpt_file_is_aligned_to_the_anon_corpus():
+    """One row per source statement for every persona, on the same as-of keys.
+
+    build_excerpt_files emits a placeholder rather than skipping a statement, so
+    a short file would mean the as-of rule could serve a stale older document.
+    """
+    anon = _rows(FOMC_DIR / "statements_anon.jsonl")
+    keys = {r["release_date"] for r in anon}
+    ids = {r["doc_id"] for r in anon}
+    paths = sorted(FOMC_DIR.glob("excerpts_*.jsonl"))
+    assert len(paths) == 11, [p.name for p in paths]
+    for path in paths:
+        rows = _rows(path)
+        assert len(rows) == len(anon), path.name
+        assert {r["release_date"] for r in rows} == keys, path.name
+        assert {r["doc_id"] for r in rows} == ids, path.name
+
+
+def test_no_shipped_corpus_carries_a_date():
+    """The scrub is measured on the real text, not assumed from the pipeline."""
+    for row in _rows(FOMC_DIR / "statements_anon.jsonl"):
+        assert not date_hits(row["text"]), row["doc_id"]
+    for path in sorted(FOMC_DIR.glob("excerpts_*.jsonl")):
+        for row in _rows(path):
+            assert not date_hits(row["text"]), f"{path.name}:{row['doc_id']}"
+
+
+def test_positioning_has_no_fomc_text_and_that_is_the_finding():
+    """The FOMC does not discuss investor positioning, so its excerpt is empty
+    for every statement — which makes positioning's cued arm identical to its
+    no-text arm. Pinned because it is a result we report, and because a future
+    routing change that starts matching Fed *holdings* language would silently
+    resurrect the bug 9fcbcc2 fixed.
+    """
+    placeholder = "says nothing about this driver"
+    rows = _rows(FOMC_DIR / "excerpts_positioning.jsonl")
+    assert all(placeholder in r["text"] for r in rows)
+
+    # The contrast: three of the four equity analysts do get real text.
+    for driver, floor in (("risk_appetite", 172), ("vol_regime", 168), ("sector_breadth", 150)):
+        rows = _rows(FOMC_DIR / f"excerpts_{driver}.jsonl")
+        nonempty = sum(1 for r in rows if placeholder not in r["text"])
+        assert nonempty >= floor, f"{driver}: {nonempty} non-empty excerpts"
