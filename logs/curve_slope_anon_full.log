@@ -1,0 +1,72 @@
+/Users/eliasroubache/anaconda3/lib/python3.11/site-packages/pandas/core/computation/expressions.py:22: UserWarning: Pandas requires version '2.10.2' or newer of 'numexpr' (version '2.8.4' currently installed).
+  from pandas.core.computation.check import NUMEXPR_INSTALLED
+/Users/eliasroubache/anaconda3/lib/python3.11/site-packages/pandas/core/arrays/masked.py:56: UserWarning: Pandas requires version '1.4.2' or newer of 'bottleneck' (version '1.3.5' currently installed).
+  from pandas.core import (
+[info] statements_anon.jsonl statements loaded: 172 docs, selector=whole, scrub=True (point-in-time by release_date)
+driver     curve_slope   text-mode cue   model claude-haiku-4-5-20251001
+clock      DGS10 — 126 releases, 2016-01-31 → 2026-06-30
+
+[1/126] 2016-01-31 flat  conv 0.35 · 0.2m elapsed · eta 24.9m[2/126] 2016-02-29 down  conv 0.45 · 0.4m elapsed · eta 23.6m[3/126] 2016-03-31 flat  conv 0.25 · 0.6m elapsed · eta 22.7m[4/126] 2016-04-30 flat  conv 0.25 · 0.7m elapsed · eta 22.4m[5/126] 2016-05-31 flat  conv 0.30 · 1.0m elapsed · eta 23.2m[6/126] 2016-06-30 flat  conv 0.20 · 1.2m elapsed · eta 23.2m[7/126] 2016-07-31 up    conv 0.35 · 1.4m elapsed · eta 23.6m[8/126] 2016-08-31 flat  conv 0.25 · 1.6m elapsed · eta 23.1m[9/126] 2016-09-30 down  conv 0.35 · 1.8m elapsed · eta 22.9m[10/126] 2016-10-31 up    conv 0.55 · 2.0m elapsed · eta 22.7m[11/126] 2016-11-30 up    conv 0.58 · 2.1m elapsed · eta 22.3m[12/126] 2016-12-31 down  conv 0.62 · 2.3m elapsed · eta 22.2m[13/126] 2017-01-31 up    conv 0.38 · 2.5m elapsed · eta 21.7m[14/126] 2017-02-28 down  conv 0.62 · 2.7m elapsed · eta 21.5m[15/126] 2017-03-31 down  conv 0.45 · 2.9m elapsed · eta 21.6m[16/126] 2017-04-30 up    conv 0.52 · 3.1m elapsed · eta 21.6m[17/126] 2017-05-31 down  conv 0.58 · 3.3m elapsed · eta 21.4m[18/126] 2017-06-30 up    conv 0.62 · 3.6m elapsed · eta 21.4m[19/126] 2017-07-31 flat  conv 0.35 · 3.8m elapsed · eta 21.2m[20/126] 2017-08-31 down  conv 0.68 · 4.0m elapsed · eta 21.0m[21/126] 2017-09-30 down  conv 0.62 · 4.2m elapsed · eta 20.8m[22/126] 2017-10-31 down  conv 0.58 · 4.4m elapsed · eta 20.6m[23/126] 2017-11-30 flat  conv 0.44 · 4.5m elapsed · eta 20.3m[24/126] 2017-12-31 down  conv 0.62 · 4.7m elapsed · eta 19.9m[25/126] 2018-01-31 up    conv 0.48 · 4.9m elapsed · eta 19.7m[26/126] 2018-02-28 down  conv 0.62 · 5.1m elapsed · eta 19.4m[27/126] 2018-03-31 up    conv 0.55 · 5.3m elapsed · eta 19.3m[28/126] 2018-04-30 down  conv 0.40 · 5.4m elapsed · eta 19.0m[29/126] 2018-05-31 down  conv 0.35 · 5.6m elapsed · eta 18.7m[30/126] 2018-06-30 down  conv 0.45 · 5.8m elapsed · eta 18.5m[31/126] 2018-07-31 up    conv 0.48 · 6.0m elapsed · eta 18.3m[32/126] 2018-08-31 down  conv 0.65 · 6.1m elapsed · eta 18.0m[33/126] 2018-09-30 down  conv 0.45 · 6.3m elapsed · eta 17.8m[34/126] 2018-10-31 up    conv 0.35 · 6.5m elapsed · eta 17.5m[35/126] 2018-11-30 down  conv 0.55 · 6.7m elapsed · eta 17.4m[36/126] 2018-12-31 flat  conv 0.35 · 6.9m elapsed · eta 17.1m[37/126] 2019-01-31 flat  conv 0.35 · 7.0m elapsed · eta 16.9m[38/126] 2019-02-28 up    conv 0.65 · 7.2m elapsed · eta 16.8m[39/126] 2019-03-31 down  conv 0.45 · 7.4m elapsed · eta 16.5m[40/126] 2019-04-30 up    conv 0.35 · 7.6m elapsed · eta 16.3m[41/126] 2019-05-31 flat  conv 0.35 · 7.8m elapsed · eta 16.2m[42/126] 2019-06-30 up    conv 0.45 · 8.0m elapsed · eta 16.0m[43/126] 2019-07-31 down  conv 0.65 · 8.2m elapsed · eta 15.7m[44/126] 2019-08-31 flat  conv 0.45 · 8.4m elapsed · eta 15.6m[45/126] 2019-09-30 down  conv 0.35 · 8.5m elapsed · eta 15.4m[46/126] 2019-10-31 flat  conv 0.25 · 8.7m elapsed · eta 15.2m[47/126] 2019-11-30 down  conv 0.35 · 8.9m elapsed · eta 14.9m[48/126] 2019-12-31 down  conv 0.52 · 9.2m elapsed · eta 15.0m[49/126] 2020-01-31 down  conv 0.38 · 9.4m elapsed · eta 14.8m[50/126] 2020-02-29 up    conv 0.55 · 9.6m elapsed · eta 14.6m[51/126] 2020-03-31 flat  conv 0.25 · 9.8m elapsed · eta 14.3m[52/126] 2020-04-30 up    conv 0.55 · 9.9m elapsed · eta 14.1m[53/126] 2020-05-31 down  conv 0.40 · 10.1m elapsed · eta 13.9m[54/126] 2020-06-30 down  conv 0.25 · 10.3m elapsed · eta 13.7m[55/126] 2020-07-31 flat  conv 0.25 · 10.5m elapsed · eta 13.6m[56/126] 2020-08-31 down  conv 0.45 · 10.7m elapsed · eta 13.4m[57/126] 2020-09-30 down  conv 0.50 · 10.9m elapsed · eta 13.2m[58/126] 2020-10-31 up    conv 0.68 · 11.1m elapsed · eta 13.0m[59/126] 2020-11-30 flat  conv 0.35 · 11.3m elapsed · eta 12.8m[60/126] 2020-12-31 down  conv 0.45 · 11.5m elapsed · eta 12.6m[61/126] 2021-01-31 flat  conv 0.35 · 11.6m elapsed · eta 12.4m[62/126] 2021-02-28 up    conv 0.68 · 11.8m elapsed · eta 12.2m[63/126] 2021-03-31 up    conv 0.55 · 12.0m elapsed · eta 12.0m[64/126] 2021-04-30 flat  conv 0.42 · 12.2m elapsed · eta 11.8m[65/126] 2021-05-31 down  conv 0.57 · 12.4m elapsed · eta 11.6m[66/126] 2021-06-30 down  conv 0.58 · 12.6m elapsed · eta 11.4m[67/126] 2021-07-31 flat  conv 0.35 · 12.8m elapsed · eta 11.3m[68/126] 2021-08-31 flat  conv 0.32 · 13.0m elapsed · eta 11.1m[69/126] 2021-09-30 up    conv 0.48 · 13.2m elapsed · eta 10.9m[70/126] 2021-10-31 down  conv 0.62 · 13.4m elapsed · eta 10.7m[71/126] 2021-11-30 down  conv 0.58 · 13.6m elapsed · eta 10.5m[72/126] 2021-12-31 flat  conv 0.35 · 13.8m elapsed · eta 10.4m[73/126] 2022-01-31 down  conv 0.70 · 14.0m elapsed · eta 10.2m[74/126] 2022-02-28 up    conv 0.45 · 14.2m elapsed · eta 10.0m[75/126] 2022-03-31 up    conv 0.35 · 14.4m elapsed · eta 9.8m[76/126] 2022-04-30 down  conv 0.65 · 14.5m elapsed · eta 9.6m[77/126] 2022-05-31 up    conv 0.62 · 14.7m elapsed · eta 9.4m[78/126] 2022-06-30 down  conv 0.68 · 14.9m elapsed · eta 9.2m[79/126] 2022-07-31 down  conv 0.45 · 15.1m elapsed · eta 9.0m[80/126] 2022-08-31 down  conv 0.35 · 15.3m elapsed · eta 8.8m[81/126] 2022-09-30 flat  conv 0.35 · 15.5m elapsed · eta 8.6m[82/126] 2022-10-31 down  conv 0.58 · 15.6m elapsed · eta 8.4m[83/126] 2022-11-30 up    conv 0.42 · 15.8m elapsed · eta 8.2m[84/126] 2022-12-31 flat  conv 0.25 · 16.0m elapsed · eta 8.0m[85/126] 2023-01-31 flat  conv 0.32 · 16.2m elapsed · eta 7.8m[86/126] 2023-02-28 down  conv 0.72 · 16.5m elapsed · eta 7.7m[87/126] 2023-03-31 down  conv 0.65 · 16.7m elapsed · eta 7.5m[88/126] 2023-04-30 flat  conv 0.35 · 16.8m elapsed · eta 7.3m[89/126] 2023-05-31 down  conv 0.50 · 17.0m elapsed · eta 7.1m[90/126] 2023-06-30 up    conv 0.45 · 17.2m elapsed · eta 6.9m[91/126] 2023-07-31 flat  conv 0.25 · 17.4m elapsed · eta 6.7m[92/126] 2023-08-31 flat  conv 0.25 · 17.6m elapsed · eta 6.5m[93/126] 2023-09-30 up    conv 0.65 · 17.8m elapsed · eta 6.3m[94/126] 2023-10-31 up    conv 0.50 · 18.0m elapsed · eta 6.1m[95/126] 2023-11-30 up    conv 0.55 · 18.1m elapsed · eta 5.9m[96/126] 2023-12-31 up    conv 0.55 · 18.3m elapsed · eta 5.7m[97/126] 2024-01-31 flat  conv 0.25 · 18.5m elapsed · eta 5.5m[98/126] 2024-02-29 down  conv 0.55 · 18.7m elapsed · eta 5.4m[99/126] 2024-03-31 flat  conv 0.25 · 18.9m elapsed · eta 5.2m[100/126] 2024-04-30 flat  conv 0.35 · 19.1m elapsed · eta 5.0m[101/126] 2024-05-31 up    conv 0.45 · 19.3m elapsed · eta 4.8m[102/126] 2024-06-30 up    conv 0.35 · 19.5m elapsed · eta 4.6m[103/126] 2024-07-31 down  conv 0.40 · 19.7m elapsed · eta 4.4m[104/126] 2024-08-31 down  conv 0.45 · 19.9m elapsed · eta 4.2m[105/126] 2024-09-30 up    conv 0.50 · 20.1m elapsed · eta 4.0m[106/126] 2024-10-31 flat  conv 0.35 · 20.3m elapsed · eta 3.8m[107/126] 2024-11-30 flat  conv 0.30 · 20.5m elapsed · eta 3.6m[108/126] 2024-12-31 up    conv 0.72 · 20.7m elapsed · eta 3.4m[109/126] 2025-01-31 down  conv 0.55 · 20.8m elapsed · eta 3.3m[110/126] 2025-02-28 up    conv 0.35 · 21.0m elapsed · eta 3.1m[111/126] 2025-03-31 down  conv 0.45 · 21.3m elapsed · eta 2.9m[112/126] 2025-04-30 flat  conv 0.35 · 21.4m elapsed · eta 2.7m[113/126] 2025-05-31 down  conv 0.45 · 21.6m elapsed · eta 2.5m[114/126] 2025-06-30 down  conv 0.42 · 21.8m elapsed · eta 2.3m[115/126] 2025-07-31 flat  conv 0.35 · 22.0m elapsed · eta 2.1m[116/126] 2025-08-31 up    conv 0.62 · 22.2m elapsed · eta 1.9m[117/126] 2025-09-30 down  conv 0.65 · 22.4m elapsed · eta 1.7m[118/126] 2025-10-31 down  conv 0.45 · 22.6m elapsed · eta 1.5m[119/126] 2025-11-30 up    conv 0.42 · 22.8m elapsed · eta 1.3m[120/126] 2025-12-31 flat  conv 0.35 · 23.0m elapsed · eta 1.1m[121/126] 2026-01-31 up    conv 0.62 · 23.2m elapsed · eta 1.0m[122/126] 2026-02-28 down  conv 0.45 · 23.4m elapsed · eta 0.8m[123/126] 2026-03-31 flat  conv 0.35 · 23.6m elapsed · eta 0.6m[124/126] 2026-04-30 down  conv 0.42 · 23.8m elapsed · eta 0.4m[125/126] 2026-05-31 down  conv 0.55 · 23.9m elapsed · eta 0.2m[126/126] 2026-06-30 down  conv 0.68 · 24.1m elapsed · eta 0.0m
+
+========================================================================
+AGENT IC — curve_slope, next-release horizon, cue text
+========================================================================
+                             n     ic  t_stat  p_approx  hit_rate
+signal                                                           
+analyst_signed_conviction  125  0.124    1.38    0.1673     0.541
+
+breadth 11.8 bets/yr · implied IR +0.42
+bar: IR 0.5 needs IC 0.15 · IR 1.0 needs IC 0.29
+reference: best stable single feature (pre-COVID) IC -0.23
+
+--- is the conviction doing any work? ---
+                     n     ic  t_stat  p_approx  hit_rate  ic_from_conviction
+signal                                                                       
+direction_only     125  0.084    0.93    0.3513     0.541                0.04
+signed_conviction  125  0.124    1.38    0.1673     0.541                0.04
+
+--- signal sharpe (secondary, NOT tradable) ---
+{
+  "n": 125,
+  "periods_per_year": 11.78,
+  "mean": 0.0073,
+  "vol": 0.0652,
+  "sharpe": 0.384
+}
+
+--- direction mix ---
+down    54
+flat    36
+up      36
+
+--- conviction distribution ---
+count    126.000
+mean       0.458
+std        0.133
+min        0.200
+25%        0.350
+50%        0.450
+75%        0.565
+max        0.720
+
+## Run audit
+{
+  "llm": {
+    "model": "claude-haiku-4-5-20251001",
+    "calls": 126,
+    "cached_calls": 0,
+    "retries": 0,
+    "input_tokens": 392857,
+    "output_tokens": 156297,
+    "est_cost_usd": 1.1743
+  },
+  "carry_forward": {
+    "meetings": 126,
+    "calls_made": 126,
+    "carried": 0,
+    "carried_share": 0.0
+  }
+}
+
+[saved] reports/hk/curve_slope_anon_full.jsonl       — per-meeting inputs, raw responses, views
+[saved] reports/hk/curve_slope_anon_full.meta.json  — config, system prompt, feature spec

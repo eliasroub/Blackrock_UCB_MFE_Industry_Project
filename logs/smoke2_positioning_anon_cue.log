@@ -1,0 +1,71 @@
+/Users/eliasroubache/anaconda3/lib/python3.11/site-packages/pandas/core/computation/expressions.py:22: UserWarning: Pandas requires version '2.10.2' or newer of 'numexpr' (version '2.8.4' currently installed).
+  from pandas.core.computation.check import NUMEXPR_INSTALLED
+/Users/eliasroubache/anaconda3/lib/python3.11/site-packages/pandas/core/arrays/masked.py:56: UserWarning: Pandas requires version '1.4.2' or newer of 'bottleneck' (version '1.3.5' currently installed).
+  from pandas.core import (
+[info] excerpts_positioning.jsonl statements loaded: 172 docs, selector=whole, scrub=True (point-in-time by release_date)
+driver     positioning   text-mode cue   model claude-haiku-4-5-20251001
+clock      EQ_AMGR_Z — 3 releases, 2016-01-31 → 2016-03-31
+
+[1/3] 2016-01-31 up    conv 0.45 · 0.1m elapsed · eta 0.3m[2/3] 2016-02-29 up    conv 0.50 · 0.3m elapsed · eta 0.1m[3/3] 2016-03-31 flat  conv 0.35 · 0.4m elapsed · eta 0.0m
+
+========================================================================
+AGENT IC — positioning, next-release horizon, cue text
+========================================================================
+                           n  ic  t_stat  p_approx  hit_rate
+signal                                                      
+analyst_signed_conviction  2 NaN     NaN       NaN       NaN
+
+breadth 12.2 bets/yr · implied IR +nan
+bar: IR 0.5 needs IC 0.14 · IR 1.0 needs IC 0.29
+reference: best stable single feature (pre-COVID) IC -0.23
+
+--- is the conviction doing any work? ---
+                   n  ic  t_stat  p_approx  hit_rate  ic_from_conviction
+signal                                                                  
+direction_only     2 NaN     NaN       NaN       NaN                 NaN
+signed_conviction  2 NaN     NaN       NaN       NaN                 NaN
+
+--- signal sharpe (secondary, NOT tradable) ---
+{
+  "n": 2,
+  "periods_per_year": 12.18,
+  "mean": 0.1128,
+  "vol": 0.0595,
+  "sharpe": 6.6085
+}
+
+--- direction mix ---
+up      2
+flat    1
+
+--- conviction distribution ---
+count    3.000
+mean     0.433
+std      0.076
+min      0.350
+25%      0.400
+50%      0.450
+75%      0.475
+max      0.500
+
+## Run audit
+{
+  "llm": {
+    "model": "claude-haiku-4-5-20251001",
+    "calls": 3,
+    "cached_calls": 0,
+    "retries": 0,
+    "input_tokens": 7536,
+    "output_tokens": 2150,
+    "est_cost_usd": 0.0183
+  },
+  "carry_forward": {
+    "meetings": 3,
+    "calls_made": 3,
+    "carried": 0,
+    "carried_share": 0.0
+  }
+}
+
+[saved] reports/_smoke2/positioning_anon_cue.jsonl       — per-meeting inputs, raw responses, views
+[saved] reports/_smoke2/positioning_anon_cue.meta.json  — config, system prompt, feature spec

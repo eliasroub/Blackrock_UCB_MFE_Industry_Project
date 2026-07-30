@@ -1,0 +1,72 @@
+/Users/eliasroubache/anaconda3/lib/python3.11/site-packages/pandas/core/computation/expressions.py:22: UserWarning: Pandas requires version '2.10.2' or newer of 'numexpr' (version '2.8.4' currently installed).
+  from pandas.core.computation.check import NUMEXPR_INSTALLED
+/Users/eliasroubache/anaconda3/lib/python3.11/site-packages/pandas/core/arrays/masked.py:56: UserWarning: Pandas requires version '1.4.2' or newer of 'bottleneck' (version '1.3.5' currently installed).
+  from pandas.core import (
+[info] statements_anon.jsonl statements loaded: 172 docs, selector=whole, scrub=True (point-in-time by release_date)
+driver     labor_tightness   text-mode cue   model claude-haiku-4-5-20251001
+clock      UNRATE — 124 releases, 2016-01-08 → 2026-05-08
+
+[1/124] 2016-01-08 flat  conv 0.35 · 0.2m elapsed · eta 20.3m[2/124] 2016-02-08 flat  conv 0.30 · 0.3m elapsed · eta 19.2m[3/124] 2016-03-08 flat  conv 0.30 · 0.5m elapsed · eta 18.6m[4/124] 2016-04-08 up    conv 0.45 · 0.6m elapsed · eta 18.5m[5/124] 2016-05-08 flat  conv 0.35 · 0.8m elapsed · eta 18.7m[6/124] 2016-06-08 flat  conv 0.40 · 0.9m elapsed · eta 18.3m[7/124] 2016-07-08 flat  conv 0.40 · 1.1m elapsed · eta 18.2m[8/124] 2016-08-08 flat  conv 0.45 · 1.2m elapsed · eta 17.9m[9/124] 2016-09-08 flat  conv 0.50 · 1.4m elapsed · eta 17.6m[10/124] 2016-10-08 flat  conv 0.52 · 1.5m elapsed · eta 17.4m[11/124] 2016-11-08 down  conv 0.38 · 1.7m elapsed · eta 17.4m[12/124] 2016-12-08 down  conv 0.32 · 1.9m elapsed · eta 17.3m[13/124] 2017-01-08 flat  conv 0.50 · 2.0m elapsed · eta 17.3m[14/124] 2017-02-08 down  conv 0.55 · 2.2m elapsed · eta 17.2m[15/124] 2017-03-08 up    conv 0.45 · 2.3m elapsed · eta 17.0m[16/124] 2017-04-08 flat  conv 0.55 · 2.5m elapsed · eta 17.0m[17/124] 2017-05-08 down  conv 0.72 · 2.7m elapsed · eta 16.7m[18/124] 2017-06-08 flat  conv 0.55 · 2.8m elapsed · eta 16.5m[19/124] 2017-07-08 flat  conv 0.50 · 2.9m elapsed · eta 16.3m[20/124] 2017-08-08 flat  conv 0.50 · 3.1m elapsed · eta 16.1m[21/124] 2017-09-08 up    conv 0.40 · 3.3m elapsed · eta 16.0m[22/124] 2017-10-08 flat  conv 0.35 · 3.4m elapsed · eta 15.9m[23/124] 2017-11-08 flat  conv 0.40 · 3.6m elapsed · eta 15.8m[24/124] 2017-12-08 flat  conv 0.45 · 3.7m elapsed · eta 15.6m[25/124] 2018-01-08 up    conv 0.40 · 3.9m elapsed · eta 15.5m[26/124] 2018-02-08 up    conv 0.35 · 4.1m elapsed · eta 15.3m[27/124] 2018-03-08 flat  conv 0.50 · 4.2m elapsed · eta 15.1m[28/124] 2018-04-08 flat  conv 0.50 · 4.4m elapsed · eta 15.1m[29/124] 2018-05-08 up    conv 0.45 · 4.6m elapsed · eta 14.9m[30/124] 2018-06-08 up    conv 0.45 · 4.7m elapsed · eta 14.8m[31/124] 2018-07-08 up    conv 0.35 · 4.9m elapsed · eta 14.6m[32/124] 2018-08-08 up    conv 0.30 · 5.1m elapsed · eta 14.5m[33/124] 2018-09-08 up    conv 0.40 · 5.2m elapsed · eta 14.3m[34/124] 2018-10-08 flat  conv 0.25 · 5.3m elapsed · eta 14.1m[35/124] 2018-11-08 flat  conv 0.30 · 5.5m elapsed · eta 13.9m[36/124] 2018-12-08 flat  conv 0.35 · 5.6m elapsed · eta 13.8m[37/124] 2019-01-08 flat  conv 0.50 · 5.8m elapsed · eta 13.6m[38/124] 2019-02-08 flat  conv 0.50 · 5.9m elapsed · eta 13.4m[39/124] 2019-03-08 flat  conv 0.50 · 6.1m elapsed · eta 13.2m[40/124] 2019-04-08 flat  conv 0.55 · 6.2m elapsed · eta 13.1m[41/124] 2019-05-08 up    conv 0.35 · 6.4m elapsed · eta 13.0m[42/124] 2019-06-08 down  conv 0.60 · 6.5m elapsed · eta 12.8m[43/124] 2019-07-08 flat  conv 0.40 · 6.7m elapsed · eta 12.6m[44/124] 2019-08-08 flat  conv 0.50 · 6.8m elapsed · eta 12.4m[45/124] 2019-09-08 up    conv 0.65 · 7.0m elapsed · eta 12.3m[46/124] 2019-10-08 flat  conv 0.35 · 7.2m elapsed · eta 12.1m[47/124] 2019-11-08 flat  conv 0.40 · 7.4m elapsed · eta 12.1m[48/124] 2019-12-08 flat  conv 0.45 · 7.5m elapsed · eta 11.9m[49/124] 2020-01-08 flat  conv 0.45 · 7.6m elapsed · eta 11.7m[50/124] 2020-02-08 flat  conv 0.40 · 7.8m elapsed · eta 11.5m[51/124] 2020-03-08 up    conv 0.75 · 7.9m elapsed · eta 11.4m[52/124] 2020-04-08 flat  conv 0.65 · 8.1m elapsed · eta 11.2m[53/124] 2020-05-08 up    conv 0.55 · 8.3m elapsed · eta 11.1m[54/124] 2020-06-08 down  conv 0.45 · 8.5m elapsed · eta 11.0m[55/124] 2020-07-08 flat  conv 0.55 · 8.7m elapsed · eta 10.9m[56/124] 2020-08-08 down  conv 0.72 · 8.8m elapsed · eta 10.7m[57/124] 2020-09-08 up    conv 0.58 · 9.0m elapsed · eta 10.5m[58/124] 2020-10-08 down  conv 0.70 · 9.1m elapsed · eta 10.4m[59/124] 2020-11-08 flat  conv 0.55 · 9.3m elapsed · eta 10.2m[60/124] 2020-12-08 flat  conv 0.50 · 9.4m elapsed · eta 10.0m[61/124] 2021-01-08 down  conv 0.35 · 9.6m elapsed · eta 9.9m[62/124] 2021-02-08 flat  conv 0.25 · 9.7m elapsed · eta 9.7m[63/124] 2021-03-08 flat  conv 0.40 · 9.9m elapsed · eta 9.6m[64/124] 2021-04-08 flat  conv 0.45 · 10.1m elapsed · eta 9.4m[65/124] 2021-05-08 down  conv 0.68 · 10.2m elapsed · eta 9.3m[66/124] 2021-06-08 flat  conv 0.35 · 10.4m elapsed · eta 9.1m[67/124] 2021-07-08 up    conv 0.58 · 10.5m elapsed · eta 8.9m[68/124] 2021-08-08 flat  conv 0.45 · 10.7m elapsed · eta 8.8m[69/124] 2021-09-08 down  conv 0.68 · 10.8m elapsed · eta 8.6m[70/124] 2021-10-08 flat  conv 0.55 · 11.0m elapsed · eta 8.5m[71/124] 2021-11-08 up    conv 0.40 · 11.2m elapsed · eta 8.3m[72/124] 2021-12-08 up    conv 0.55 · 11.3m elapsed · eta 8.2m[73/124] 2022-01-08 up    conv 0.62 · 11.5m elapsed · eta 8.0m[74/124] 2022-02-08 flat  conv 0.35 · 11.7m elapsed · eta 7.9m[75/124] 2022-03-08 down  conv 0.62 · 11.8m elapsed · eta 7.7m[76/124] 2022-04-08 flat  conv 0.55 · 12.0m elapsed · eta 7.6m[77/124] 2022-05-08 flat  conv 0.50 · 12.1m elapsed · eta 7.4m[78/124] 2022-06-08 up    conv 0.35 · 12.3m elapsed · eta 7.3m[79/124] 2022-07-08 flat  conv 0.40 · 12.5m elapsed · eta 7.1m[80/124] 2022-08-08 flat  conv 0.35 · 12.6m elapsed · eta 7.0m[81/124] 2022-09-08 up    conv 0.58 · 12.8m elapsed · eta 6.8m[82/124] 2022-10-08 flat  conv 0.55 · 12.9m elapsed · eta 6.6m[83/124] 2022-11-08 flat  conv 0.55 · 13.1m elapsed · eta 6.5m[84/124] 2022-12-08 flat  conv 0.55 · 13.2m elapsed · eta 6.3m[85/124] 2023-01-08 flat  conv 0.55 · 13.4m elapsed · eta 6.1m[86/124] 2023-02-08 flat  conv 0.60 · 13.5m elapsed · eta 6.0m[87/124] 2023-03-08 flat  conv 0.65 · 13.7m elapsed · eta 5.8m[88/124] 2023-04-08 up    conv 0.55 · 13.8m elapsed · eta 5.7m[89/124] 2023-05-08 flat  conv 0.45 · 14.0m elapsed · eta 5.5m[90/124] 2023-06-08 flat  conv 0.45 · 14.2m elapsed · eta 5.4m[91/124] 2023-07-08 flat  conv 0.45 · 14.3m elapsed · eta 5.2m[92/124] 2023-08-08 up    conv 0.58 · 14.5m elapsed · eta 5.0m[93/124] 2023-09-08 up    conv 0.62 · 14.7m elapsed · eta 4.9m[94/124] 2023-10-08 up    conv 0.65 · 14.8m elapsed · eta 4.7m[95/124] 2023-11-08 up    conv 0.60 · 15.0m elapsed · eta 4.6m[96/124] 2023-12-08 up    conv 0.65 · 15.1m elapsed · eta 4.4m[97/124] 2024-01-08 flat  conv 0.40 · 15.3m elapsed · eta 4.3m[98/124] 2024-02-08 up    conv 0.65 · 15.4m elapsed · eta 4.1m[99/124] 2024-03-08 up    conv 0.40 · 15.6m elapsed · eta 3.9m[100/124] 2024-04-08 up    conv 0.38 · 15.7m elapsed · eta 3.8m[101/124] 2024-05-08 flat  conv 0.45 · 15.9m elapsed · eta 3.6m[102/124] 2024-06-08 up    conv 0.55 · 16.1m elapsed · eta 3.5m[103/124] 2024-07-08 up    conv 0.50 · 16.2m elapsed · eta 3.3m[104/124] 2024-08-08 up    conv 0.50 · 16.4m elapsed · eta 3.2m[105/124] 2024-09-08 flat  conv 0.35 · 16.6m elapsed · eta 3.0m[106/124] 2024-10-08 up    conv 0.55 · 16.7m elapsed · eta 2.8m[107/124] 2024-11-08 up    conv 0.50 · 16.9m elapsed · eta 2.7m[108/124] 2024-12-08 flat  conv 0.45 · 17.1m elapsed · eta 2.5m[109/124] 2025-01-08 flat  conv 0.50 · 17.2m elapsed · eta 2.4m[110/124] 2025-02-08 up    conv 0.40 · 17.4m elapsed · eta 2.2m[111/124] 2025-03-08 up    conv 0.35 · 17.6m elapsed · eta 2.1m[112/124] 2025-04-08 flat  conv 0.30 · 17.7m elapsed · eta 1.9m[113/124] 2025-05-08 up    conv 0.45 · 17.9m elapsed · eta 1.7m[114/124] 2025-06-08 up    conv 0.35 · 18.1m elapsed · eta 1.6m[115/124] 2025-07-08 flat  conv 0.35 · 18.3m elapsed · eta 1.4m[116/124] 2025-08-08 up    conv 0.45 · 18.4m elapsed · eta 1.3m[117/124] 2025-09-08 up    conv 0.55 · 18.6m elapsed · eta 1.1m[118/124] 2025-11-08 flat  conv 0.45 · 18.7m elapsed · eta 1.0m[119/124] 2025-12-08 up    conv 0.62 · 18.9m elapsed · eta 0.8m[120/124] 2026-01-08 flat  conv 0.50 · 19.0m elapsed · eta 0.6m[121/124] 2026-02-08 up    conv 0.40 · 19.2m elapsed · eta 0.5m[122/124] 2026-03-08 up    conv 0.35 · 19.3m elapsed · eta 0.3m[123/124] 2026-04-08 flat  conv 0.35 · 19.5m elapsed · eta 0.2m[124/124] 2026-05-08 flat  conv 0.40 · 19.6m elapsed · eta 0.0m
+
+========================================================================
+AGENT IC — labor_tightness, next-release horizon, cue text
+========================================================================
+                             n     ic  t_stat  p_approx  hit_rate
+signal                                                           
+analyst_signed_conviction  123  0.137    1.52    0.1288     0.524
+
+breadth 11.8 bets/yr · implied IR +0.47
+bar: IR 0.5 needs IC 0.15 · IR 1.0 needs IC 0.29
+reference: best stable single feature (pre-COVID) IC -0.23
+
+--- is the conviction doing any work? ---
+                     n     ic  t_stat  p_approx  hit_rate  ic_from_conviction
+signal                                                                       
+direction_only     123  0.132    1.47    0.1427     0.524               0.005
+signed_conviction  123  0.137    1.52    0.1288     0.524               0.005
+
+--- signal sharpe (secondary, NOT tradable) ---
+{
+  "n": 123,
+  "periods_per_year": 11.78,
+  "mean": 0.057,
+  "vol": 0.7171,
+  "sharpe": 0.2729
+}
+
+--- direction mix ---
+flat    68
+up      44
+down    12
+
+--- conviction distribution ---
+count    124.000
+mean       0.474
+std        0.111
+min        0.250
+25%        0.400
+50%        0.450
+75%        0.550
+max        0.750
+
+## Run audit
+{
+  "llm": {
+    "model": "claude-haiku-4-5-20251001",
+    "calls": 124,
+    "cached_calls": 0,
+    "retries": 0,
+    "input_tokens": 368006,
+    "output_tokens": 123853,
+    "est_cost_usd": 0.9873
+  },
+  "carry_forward": {
+    "meetings": 124,
+    "calls_made": 124,
+    "carried": 0,
+    "carried_share": 0.0
+  }
+}
+
+[saved] reports/hk/labor_tightness_anon_full.jsonl       — per-meeting inputs, raw responses, views
+[saved] reports/hk/labor_tightness_anon_full.meta.json  — config, system prompt, feature spec

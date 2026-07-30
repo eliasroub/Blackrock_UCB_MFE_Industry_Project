@@ -19,6 +19,5 @@ reports/*
 .claude/
 results/anonymize/llm_cache/
 results/pm/llm_cache/
-logs/
 .Rhistory
 docs/.Rhistory
