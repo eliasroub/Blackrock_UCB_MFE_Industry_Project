@@ -40,6 +40,33 @@ prompt (2026-07-29 pilot — up 1.42x from $0.0054 because `input_ranking` becam
 field, so the analyst now ranks every measurement and emits ~928 output tokens against 621),
 Sonnet-5 analyst ≈ $0.021, Sonnet-5 PM ≈ $0.046, Opus-4-8 ≈ $0.031.
 
+
+### Verify which key is live before a paid run
+
+`~/.zshenv` and `~/.zshrc` can both set `ANTHROPIC_API_KEY`, and they resolve
+differently: a non-interactive shell (a script, or an agent's shell) reads `.zshenv`
+only, while your interactive terminal reads `.zshenv` *then* `.zshrc`, so `.zshrc`
+wins there. If the two disagree, the same command bills a different account
+depending on where you launch it — and if one of them is stale, half your launch
+paths fail.
+
+```bash
+# fingerprint both without printing either
+zsh    -c 'printf "%s\n" "${ANTHROPIC_API_KEY:0:14}…${ANTHROPIC_API_KEY: -6}"'   # scripts/agents
+zsh -i -c 'printf "%s\n" "${ANTHROPIC_API_KEY:0:14}…${ANTHROPIC_API_KEY: -6}"'   # your terminal
+
+# confirm the live one authenticates, and read the real rate limits off the headers
+curl -sS -D- -o /dev/null https://api.anthropic.com/v1/messages \
+  -H "x-api-key: $ANTHROPIC_API_KEY" -H "anthropic-version: 2023-06-01" \
+  -H "content-type: application/json" \
+  -d '{"model":"claude-haiku-4-5-20251001","max_tokens":1,"messages":[{"role":"user","content":"hi"}]}' \
+  | grep -iE "^HTTP|anthropic-organization-id|ratelimit.*limit"
+```
+
+A 401 here is the cheap failure. `preflight_llm` calls `validate()` before any leg
+spends, so a dead key exits each leg immediately rather than burning tokens — but it
+still costs you the wall clock and an empty board.
+
 ## A2. The canonical sequence
 
 ```
