@@ -13,6 +13,7 @@ venv/
 # same reason.
 reports/*
 !reports/hk/
+!reports/sn/
 !reports/hkpm/
 .DS_Store
 .claude/
