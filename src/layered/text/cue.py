@@ -62,7 +62,7 @@ class CueSelector(TextSelector):
         """Ordered ``{comparison key: sentence}`` for sentences matching any cue."""
         if not text:
             return {}
-        body = strip_chrome(scrub_dates(text))
+        body = self._clean(text)
         out: dict[str, str] = {}
         for s in sentences(body):
             if any(p.search(s) for p in patterns):

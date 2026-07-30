@@ -9,6 +9,8 @@ subclass.
 from __future__ import annotations
 
 from src.layered.analysts.build import (
+    TEXT_ARMS,
+    arm_spec,
     build_analyst,
     build_selector,
     preflight_llm,
@@ -19,6 +21,8 @@ from src.layered.analysts.llm_analyst import LLMAnalyst
 
 __all__ = [
     "LLMAnalyst",
+    "TEXT_ARMS",
+    "arm_spec",
     "CarryForward",
     "build_analyst",
     "build_selector",

@@ -273,14 +273,25 @@ class LLMAnalyst:
         ]
         if p.get("mandate"):
             parts.append("Mandate:\n" + "\n".join(f"- {m}" for m in p["mandate"]))
+        # The date paragraph has to agree with what the text channel actually did.
+        # Telling the model "dates have been removed" while handing it a dated
+        # document would make the plain leak arm measure whether it obeys an
+        # obviously false instruction, not whether it uses the date. Read off the
+        # selector rather than a second constructor flag, so the prompt and the
+        # scrub can never disagree.
+        scrubbed = getattr(self.text_selector, "scrub", True)
+        dates_clause = (
+            "Dates have been removed deliberately — do not try to identify the "
+            "calendar period, and do not reason from anything you believe you know "
+            "about it. Reason only from the evidence in front of you."
+            if scrubbed else
+            "Reason from the evidence in front of you."
+        )
         parts.append(
             "You are shown two kinds of evidence about your driver: measurements "
             "(what moved) and policy language (why it moved). Both are as of the "
             "moment you are writing; there is no later information available to you, "
-            "and no direction has been computed for you. Dates have been removed "
-            "deliberately — do not try to identify the calendar period, and do not "
-            "reason from anything you believe you know about it. Reason only from "
-            "the evidence in front of you."
+            f"and no direction has been computed for you. {dates_clause}"
         )
         # The horizon must be stated. "Inflation is rising" over one month and over
         # six months are different claims, and naming the graded measurement removes
