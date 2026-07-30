@@ -13,7 +13,7 @@ import re
 import pandas as pd
 import pytest
 
-from src.layered.contracts import DriverView
+from src.layered.contracts import DriverView, InputWeight, MissingInput
 from src.layered.pm.board import ViewBoard
 from src.layered.pm.brief import render_brief, scrub_report_dates
 from src.layered.pm.build import build_pm
@@ -103,6 +103,42 @@ def test_blind_arm_shows_exactly_one_driver():
     b = ViewBoard({"a": [view("a", "2023-06-30")], "b": [view("b", "2023-06-30")]})
     brief = render_brief(b.at("2023-06-30"), blind="a")
     assert "=== a ===" in brief and "=== b ===" not in brief
+
+
+def _reasoned_view(driver="inflation", asof="2023-06-30"):
+    """A view carrying every kind of reasoning an analyst can write."""
+    return view(driver, asof, report="the report prose",
+                falsifier="what would flip it",
+                key_evidence=["headline_mom"],
+                missing_inputs=[MissingInput(driver="labor_tightness", why="wages")],
+                input_ranking=[InputWeight(input="headline_mom", pull="down", weight=0.9),
+                               InputWeight(input="core_pce_yoy", pull="neutral", weight=0.0)])
+
+
+def test_conviction_only_brief_carries_no_reasoning():
+    """The conviction-only arm: with reports off, nothing the analyst *wrote* survives
+    — no prose, no falsifier, no key evidence, no gaps section — only the call, its
+    conviction, and its age. Falsifier and key evidence are reasoning too; leaving
+    them in would leak the rationale the arm exists to withhold."""
+    m = ViewBoard({"inflation": [_reasoned_view()]}).at("2023-06-30")
+    brief = render_brief(m, include_reports=False)
+    assert "Call: up, conviction 0.50" in brief
+    assert "formed at this meeting" in brief
+    for leaked in ("the report prose", "what would flip it", "Leaned on",
+                   "headline_mom", "never handed"):
+        assert leaked not in brief, leaked
+
+
+def test_input_ranking_is_off_by_default_and_renders_when_asked():
+    """Off by default so every pre-existing brief reproduces byte-for-byte. When on,
+    the whole ranking renders — including the weight-0 entries, whose 'read and set
+    aside' is exactly what key_evidence alone cannot say."""
+    m = ViewBoard({"inflation": [_reasoned_view()]}).at("2023-06-30")
+    assert "Attribution" not in render_brief(m)
+    brief = render_brief(m, include_input_ranking=True)
+    assert "Attribution" in brief
+    assert "headline_mom" in brief and "0.90" in brief
+    assert "core_pce_yoy" in brief and "0.00" in brief
 
 
 # ── the parse path ──────────────────────────────────────────────────────────
@@ -295,6 +331,27 @@ def test_reads_defaults_to_listens_to():
     pm = LLMPM(pod="t", config=_pod())
     assert pm.reads == ["inflation", "curve_slope"]
     assert "=== term_premium ===" not in pm._user_prompt(_three_driver_board().at("2023-06-30"))
+
+
+def test_conviction_only_arm_reaches_prompt_and_is_declared_to_the_model():
+    """The flag must change both halves of the call: the brief loses the reports, and
+    the system prompt says so — a PM told nothing would hunt for prose that is not
+    there."""
+    pm = LLMPM(pod="t", config=_pod(), include_reports=False)
+    assert "Report:" not in pm._user_prompt(_three_driver_board().at("2023-06-30"))
+    assert "reports are not shown" in pm._system_prompt()
+    # and the default arm is unchanged on both counts
+    pm_full = LLMPM(pod="t", config=_pod())
+    assert "Report:" in pm_full._user_prompt(_three_driver_board().at("2023-06-30"))
+    assert "reports are not shown" not in pm_full._system_prompt()
+
+
+def test_input_ranking_flag_reaches_the_prompt():
+    pm = LLMPM(pod="t", config=_pod(), include_input_ranking=True)
+    board = ViewBoard({"inflation": [_reasoned_view()],
+                       "curve_slope": [view("curve_slope", "2023-06-30")]})
+    prompt = pm._user_prompt(board.at("2023-06-30"))
+    assert "Attribution" in prompt and "0.90" in prompt
 
 
 def test_a_read_but_unowned_driver_is_dropped_from_the_numbers():
